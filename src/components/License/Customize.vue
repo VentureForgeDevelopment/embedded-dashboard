@@ -407,24 +407,24 @@
       </div>
 
       <!-- text to Speech Card -->
-      <div v-if="displayMode === 'floating'" class="overview-card" :class="{ dirty: isTtsDirty && !isFree }">
+      <div v-if="displayMode === 'floating'" class="overview-card" :class="{ dirty: isTtsDirty && hasTtsAccess }">
         <div class="card-header">
-          <h3 class="card-title" :class="{ 'dirty-header': isTtsDirty && !isFree }">
+          <h3 class="card-title" :class="{ 'dirty-header': isTtsDirty && hasTtsAccess }">
             Text to Speech
           </h3>
-          <span v-if="isFree" class="premium-badge">Premium</span>
+          <span v-if="!hasTtsAccess" class="premium-badge">Premium</span>
         </div>
         <div class="card-content">
           <!-- Free tier upgrade prompt -->
-          <div v-if="isFree" class="tts-upgrade-prompt">
+          <div v-if="!hasTtsAccess" class="tts-upgrade-prompt">
             <p class="upgrade-text">
-              Text-to-Speech is a premium feature that allows visitors to listen to your translated content.
+              Text-to-Speech is a premium feature available on our Growth plan or higher. Upgrade to allow visitors to listen to your translated content.
             </p>
             <button @click="goToCheckout" class="btn btn-outline btn-sm">Upgrade to Enable</button>
           </div>
 
           <!-- Normal TTS controls for paid users -->
-          <template v-else>
+          <template v-if="hasTtsAccess">
             <div class="form-group">
               <label class="toggle-label">
                 <input
@@ -541,6 +541,20 @@ export default {
 
     // Store original settings to detect changes
     const originalSettings = ref({})
+
+    const hasTtsAccess = computed(() => {
+      if (!props.license) return false
+
+      // Manual licenses have access
+      if (props.license.type === "manual") {
+        return true
+      }
+
+      // For subscription types, check product name
+      if (!props.license.product) return false
+      const productName = props.license.product.toLowerCase()
+      return productName.includes("growth") || productName.includes("pro")
+    })
 
     const isSaving = computed(() => licenseStore.state.loading.licenses)
 
@@ -1060,7 +1074,24 @@ export default {
     }
 
     function goToCheckout() {
-      router.push({ name: "checkout" })
+      console.log('license', props.license)
+      // User is on a paid plan (e.g. Starter) and needs to upgrade to Growth/Pro
+      if (props.license.type !== 'free' && props.license.subscription_id) {
+        router.push({ path: `/checkout/upgrade/${props.license.subscription_id}` });
+        return;
+      }
+
+      // User is on the Free plan and needs to upgrade
+      if (props.license.type === 'free') {
+        router.push({
+          name: 'checkout',
+          params: { type: 'upgrade-free', id: props.license.id }
+        });
+        return;
+      }
+
+      // Fallback for any other case (e.g. manual license, or subscription_id is missing)
+      router.push({ name: "checkout" });
     }
 
     // Navigation guard - warn before leaving with unsaved changes
@@ -1095,6 +1126,7 @@ export default {
       isColorsDirty,
       isTtsDirty,
       cssSelector,
+      hasTtsAccess,
       isCssSelectorValid,
       customCss,
       isCustomCssValid,

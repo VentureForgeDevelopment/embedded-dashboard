@@ -603,8 +603,6 @@ const fetchLicense = async () => {
         settings.ttsHighlighting = true
       }
 
-      console.log('fetched license', result.license)
-
       // Update store with DNS check data
       licenseStore.state.dnsCheckData = result.license?.dns_check 
 
@@ -627,6 +625,7 @@ const fetchLicense = async () => {
         dns_check: result.license.dns_check,
         createdAt: result.license.created_at,
         scheduled_change: result.license.scheduled_change || null,
+        subscription_id: result.license.subscription_id || null,
       }
       return response // Resolve the promise with the full response
     } else {
@@ -715,7 +714,7 @@ const copyHeaderInstallationScript = async () => {
   copiedHeaderScript.value = true
 
   try {
-    await navigator.clipboard.writeText(installationScript.value)
+    await navigator.clipboard.writeText(script)
     console.log("Header installation script copied to clipboard")
   } catch (err) {
     console.error("Failed to copy header installation script:", err)
@@ -807,6 +806,8 @@ const handleSettingsSave = async ({
           license_key: updatedLicenseRaw.license_key,
           settings: updatedSettings,
           createdAt: updatedLicenseRaw.created_at,
+          scheduled_change: updatedLicenseRaw.scheduled_change || null,
+          subscription_id: updatedLicenseRaw.subscription_id || null,
         }
 
         // Show success notification
@@ -909,6 +910,8 @@ const handleSettingSaved = (updatedLicense) => {
     license_key: updatedLicense.license_key,
     settings: updatedSettings,
     createdAt: updatedLicense.created_at,
+    scheduled_change: updatedLicense.scheduled_change || null,
+    subscription_id: updatedLicense.subscription_id || null,
   }
 }
 

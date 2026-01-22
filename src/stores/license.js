@@ -575,6 +575,14 @@ export const useLicenseStore = defineStore("license", () => {
       const dnsInstallationEnabled =
         dnsCheckData.status === "not_started_configuring" ? false : true
 
+      // Determine if the license has access to TTS features
+      const licenseType = license.type || "subscription";
+      const productName = license.product?.toLowerCase() || "";
+      const isFree = licenseType === 'free';
+      const isStarter = productName.includes('starter');
+      const isManual = licenseType === 'manual';
+      const hasTtsAccess = isManual || (!isFree && !isStarter);
+
       return `// Gracefully uninstall existing toolbar and load local version
 (function() {
     console.log('🔧 Web Linguist Dev Script: Uninstalling existing toolbar...');
@@ -750,14 +758,12 @@ export const useLicenseStore = defineStore("license", () => {
             },
             dnsInstallationEnabled: ${dnsInstallationEnabled || false},
             enabled: ${settings.enabled ? "true" : "false"},
-            ttsEnabled: ${settings.ttsEnabled ? "true" : "false"},
-            polyEnabled: ${settings.polyEnabled ? "true" : "false"},
+            ttsEnabled: ${hasTtsAccess && settings.ttsEnabled ? "true" : "false"},
+            polyEnabled: ${hasTtsAccess && settings.polyEnabled ? "true" : "false"},
             ttsHighlighting: ${
-              settings.ttsHighlighting !== undefined
-                ? settings.ttsHighlighting
-                  ? "true"
-                  : "false"
-                : "true"
+              hasTtsAccess && (settings.ttsHighlighting ?? true)
+                ? "true"
+                : "false"
             },
             licenseType: '${license.type || "subscription"}',
             apiUrl: '${config.appApiUrl.replace(
