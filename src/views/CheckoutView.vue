@@ -49,6 +49,7 @@
         </div>
 
         <div
+          v-if="initialOnboardComplete"
           :class="[
             'section-container',
             {
@@ -131,8 +132,8 @@
         <div class="domain-input-wrapper">
           <label for="domain_input" class="section-title">
             <p class="section-title-text">
-              <span v-if="current_subscription_product">Domain</span>
-              <span v-else>Add Domain</span>
+              <span v-if="current_subscription_product">Website Address</span>
+              <span v-else>Add Your Website Address</span>
 
               <CheckCircleIcon
                 v-if="domain && selected_domain"
@@ -175,7 +176,7 @@
         <div
           :class="[
             'section-container',
-            { disabled: !currentSelectedProduct && !selected_domain },
+            { disabled: !currentSelectedProduct || !selected_domain },
             {
               'section-container-collapsed':
                 selected_languages.length >= languageLimit && languageLimit,
@@ -695,21 +696,27 @@ export default {
         setupSubscriptionDetails()
       }
 
-      // Check for plan query parameter (from free registration flow)
-      const urlParams = new URLSearchParams(window.location.search)
-      const planParam = urlParams.get('plan')
-
-      if (planParam === 'free') {
-        // Wait for products to load, then pre-select the free product
+      // During onboarding, auto-select a product based on user type.
+      // This also handles the `plan=free` redirect from registration.
+      if (!initialOnboardComplete.value) {
         const unsub = watch(checkoutProducts, (products) => {
           if (products && products.length > 0) {
-            const freeProduct = products.find(p =>
-              p.is_free_tier || p.name?.toLowerCase() === 'free'
-            )
-            if (freeProduct) {
-              // Pre-select the free product with its first price
-              const freePrice = freeProduct.prices?.[0] || null
-              selectedProduct(freeProduct, freePrice)
+            if (authStore.isFreeUser) {
+              const freeProduct = products.find(p =>
+                p.is_free_tier || p.name?.toLowerCase() === 'free'
+              )
+              if (freeProduct) {
+                // Pre-select the free product with its first price
+                const freePrice = freeProduct.prices?.[0] || null
+                selectedProduct(freeProduct, freePrice)
+              }
+            } else {
+              // Auto-select starter monthly for non-free users
+              const starterProduct = products.find(p => p.name === initial_product_name.value)
+              if (starterProduct) {
+                  const monthlyPrice = starterProduct.prices.find(p => p.recurring.interval === 'month')
+                  selectedProduct(starterProduct, monthlyPrice)
+              }
             }
             unsub() // Stop watching after selection
           }

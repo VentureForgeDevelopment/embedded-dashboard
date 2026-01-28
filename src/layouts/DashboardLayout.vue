@@ -137,7 +137,7 @@ onUnmounted(() => {
       <div class="nav-container">
         <!-- Left: Site Name -->
         <div class="nav-left">
-          <router-link to="/">
+          <router-link to="/" :class="{ 'hide-element': hideElement }">
             <img
               :src="webLinguistLogo"
               alt="WebLinguist Logo"
@@ -283,6 +283,7 @@ onUnmounted(() => {
         <div class="nav-right">
           <!-- Hamburger Menu Button -->
           <button
+            v-show="!hideElement"
             @click.stop="toggleMobileMenu"
             class="mobile-menu-button"
             title="Open menu"

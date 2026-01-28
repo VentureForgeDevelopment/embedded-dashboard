@@ -5,7 +5,7 @@
         v-model="domainValue"
         id="domain_input"
         name="domain_input"
-        placeholder="Enter your domain"
+        placeholder="yourwebsite.com"
         @blur="handleDomainBlur"
         :class="domainInputClass"
         @keyup.enter="selectDomain()"
@@ -21,11 +21,11 @@
         ]"
         @click="selectDomain()"
       >
-        Set Domain
+        Save
       </button>
     </div>
     <div v-if="v$.domainValue.$error" class="validation-error-message">
-      {{ v$.domainValue.$errors[0]?.$message || 'Please enter a valid domain.' }}
+      {{ v$.domainValue.$errors[0]?.$message || 'Please enter a valid website address.' }}
     </div>
   </div>
 </template>
@@ -79,7 +79,10 @@ export default {
     );
 
     const rules = computed(() => ({
-      domainValue: { required, isDomain },
+      domainValue: {
+        required: helpers.withMessage("website address is required", required),
+        isDomain,
+      },
     }))
 
     const v$ = useVuelidate(rules, { domainValue })

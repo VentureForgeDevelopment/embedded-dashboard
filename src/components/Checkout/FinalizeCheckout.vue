@@ -4,9 +4,11 @@
       <div class="finalize-checkout-top" @click.stop="handleHeaderClick">
         <div v-if="checkoutProduct">
           <p>
-            {{ product.name === "Starter" ? "Standard" : product.name }}
             <span v-if="!show" class="expand-drawer-cta">
               Click Here to Checkout
+            </span>
+            <span v-else>
+              Checkout
             </span>
           </p>
         </div>
@@ -43,7 +45,7 @@
             />
             <ProductPreview
               v-else
-              title="Grow Your Business with AI-Powered Localization"
+              title="Grow Your Business with AI-Powered Translation"
               :body="
                 price.recurring.interval === 'year'
                   ? 'Web Linguist makes it easy to translate your website into multiple languages, helping businesses boost engagement, improve SEO, and increase conversions worldwide. Get started now!'

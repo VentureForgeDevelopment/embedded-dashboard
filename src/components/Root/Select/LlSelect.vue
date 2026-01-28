@@ -318,7 +318,6 @@ export default {
 .option {
   padding: 20px;
   cursor: pointer;
-  margin: 20px 0;
   text-align: left;
   transition: all 0.2s ease;
 }
