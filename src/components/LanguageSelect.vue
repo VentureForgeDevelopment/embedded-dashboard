@@ -228,7 +228,6 @@ select option {
   text-align: center;
   align-self: center;
   color: #212529;
-  min-height: 200px;
   max-height: 200px;
   overflow-y: auto;
   min-width: 200px;
