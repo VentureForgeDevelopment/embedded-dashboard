@@ -506,6 +506,10 @@ export default {
       type: Array,
       default: [],
     },
+    languages_saved: {
+      type: Boolean,
+      default: false
+    },
     setup_your_plan_initial_onboard_step: {
       //used to mark as completed from frontend
       type: Object,
@@ -552,7 +556,9 @@ export default {
         checkoutStore.state.loading.payment_method ||
         checkoutStore.state.loading.checkout ||
         checkoutStore.state.loading.creating_payment_method ||
-        checkoutStore.state.loading.subscription_proration_preview
+        checkoutStore.state.loading.subscription_proration_preview ||
+        subscriptionStore.state.loading.subscriptions ||
+        subscriptionStore.state.loading.subscription_domain
       )
     })
 
@@ -569,7 +575,7 @@ export default {
         props.product &&
         props.price &&
         props.selected_domain &&
-        props.selected_languages.length > 0
+        props.languages_saved
       )
     })
 

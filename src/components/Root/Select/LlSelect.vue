@@ -285,7 +285,7 @@ export default {
 }
 
 .options-list-multiple {
-  height: 200px;
+  height: 225px;
   overflow-y: auto;
   width: 100%;
   border: 1px solid black;

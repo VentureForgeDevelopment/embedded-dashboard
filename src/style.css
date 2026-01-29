@@ -128,7 +128,7 @@ h1 {
 }
 
 .section-container.collapse-width {
-  min-width: 200px;
+  min-width: 250px;
   max-width: fit-content;
 }
 

@@ -31,7 +31,7 @@
             "
             :class="{
               'is-selected': selectedLanguages.some(
-                (l) => l.code === language.code
+                (l) => l.code === language.code,
               ),
             }"
             :disabled="
@@ -42,9 +42,7 @@
             <span>
               {{ language.name }}
             </span>
-            <span>
-              ({{ language.code }})
-            </span>
+            <span> ({{ language.code }}) </span>
           </option>
         </LlSelect>
         <span
@@ -65,7 +63,11 @@
           <ul>
             <li v-for="language in selectedLanguages" :key="language.code">
               {{ language.code }}
-              <span v-if="language.flag" v-html="language.flag" class="flag-icon">
+              <span
+                v-if="language.flag"
+                v-html="language.flag"
+                class="flag-icon"
+              >
               </span>
               <span class="icon-wrapper">
                 <Close
@@ -76,6 +78,18 @@
             </li>
           </ul>
         </div>
+        <button
+          v-if="showSaveBtn"
+          @click="$emit('save')"
+          :class="[
+            'btn',
+            'btn-primary',
+            { 'btn-disabled': selectedLanguages.length === 0 },
+          ]"
+          :disabled="selectedLanguages.length === 0"
+        >
+          Save
+        </button>
       </div>
     </div>
   </div>
@@ -104,10 +118,13 @@ export default {
       type: Number,
       required: true,
     },
+    showSaveBtn: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ["update:modelValue"],
+  emits: ["update:modelValue", "save"],
   setup(props, { emit }) {
-
     const languageStore = useLanguageStore()
     const languages = computed(() => languageStore.allLanguages)
 
@@ -125,12 +142,12 @@ export default {
       const search = languageSearch.value.toLowerCase()
       return languages.value.filter(
         (language) =>
-        // Ensure language and its properties are not null
-          language &&
-          language.name &&
-          language.code &&
-          language.name.toLowerCase().includes(search) ||
-          language.code.toLowerCase().includes(search)
+          // Ensure language and its properties are not null
+          (language &&
+            language.name &&
+            language.code &&
+            language.name.toLowerCase().includes(search)) ||
+          language.code.toLowerCase().includes(search),
       )
     })
 
@@ -147,7 +164,7 @@ export default {
 
     function removeSelectedLanguage(language) {
       selectedLanguages.value = selectedLanguages.value.filter(
-        (l) => l.code !== language.code
+        (l) => l.code !== language.code,
       )
     }
 
@@ -178,7 +195,7 @@ export default {
 }
 
 select option {
-  margin:0!important;
+  margin: 0 !important;
 }
 
 :deep(#language_select .is-selected) {
@@ -197,7 +214,7 @@ select option {
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
 }
 .selected-languages-wrapper p {
   text-align: center;
@@ -231,17 +248,17 @@ select option {
   background: #ddd;
   border-radius: 20px;
 }
-.flag-icon{
+.flag-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width:30px;
+  width: 30px;
   height: auto;
   margin-left: 5px;
 }
- svg{
-  width: 30px!important;
-  height: 20px!important;
+svg {
+  width: 30px !important;
+  height: 20px !important;
 }
 .language-limit-info {
   font-size: 0.875rem;

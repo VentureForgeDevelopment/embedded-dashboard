@@ -224,7 +224,9 @@ export default {
         checkoutStore.state.loading.payment_method ||
         checkoutStore.state.loading.checkout ||
         checkoutStore.state.loading.creating_payment_method ||
-        checkoutStore.state.loading.subscription_proration_preview
+        checkoutStore.state.loading.subscription_proration_preview ||
+        subscriptionStore.state.loading.subscriptions ||
+        subscriptionStore.state.loading.subscription_domain 
       )
     })
     const setupIntentSecret = computed(

@@ -178,12 +178,10 @@
             'section-container',
             { disabled: !currentSelectedProduct || !selected_domain },
             {
-              'section-container-collapsed':
-                selected_languages.length >= languageLimit && languageLimit,
+              'section-container-collapsed': languages_saved,
             },
             {
-              'collapse-width':
-                selected_languages.length >= languageLimit && languageLimit,
+              'collapse-width': languages_saved,
             },
           ]"
         >
@@ -194,7 +192,7 @@
               <span v-else>Select Translations</span>
 
               <CheckCircleIcon
-                v-if="isLanguageLimitReached"
+                v-if="languages_saved"
                 fill-color="var(--success-green)"
                 style="
                   display: inline-flex;
@@ -204,14 +202,14 @@
                 "
               />
             </p>
-            <span class="selection" v-if="isLanguageLimitReached">
+            <span class="selection" v-if="languages_saved">
               <ul>
                 <li v-for="language in selected_languages" :key="language.code">
                   {{ language.code }} <span class="flag-icon" v-html="language.flag"></span>
                 </li>
               </ul>
             </span>
-            <span class="icon-wrapper" v-if="isLanguageLimitReached">
+            <span class="icon-wrapper" v-if="languages_saved">
               <Pencil
                 fill-color="gray"
                 class="edit-icon"
@@ -225,6 +223,8 @@
             v-if="currentSelectedProduct && selected_domain"
             v-model="selected_languages"
             :language-limit="languageLimit"
+            :show-save-btn="true"
+            @save="handleLanguagesSaved"
           />
         </div>
       </div>
@@ -253,6 +253,7 @@
       :selected_domain="selected_domain"
       :language_limit="languageLimit"
       :selected_languages="selected_languages"
+      :languages_saved="languages_saved"
     />
   </div>
 </template>
@@ -320,6 +321,7 @@ export default {
     const domain = ref("")
     const selected_domain = ref(false)
     const selected_languages = ref([])
+    const languages_saved = ref(false)
     const subscription = ref(null)
     const current_subscription_product = ref(null)
     const current_product_features = ref(null)
@@ -435,18 +437,18 @@ export default {
       }
     })
 
-    watch(selected_languages, (newLanguages) => {
-      if (
-        newLanguages.length === languageLimit.value &&
-        selected_domain.value
-      ) {
-        popFinalizeCheckout()
-      }
-    })
+    // watch(selected_languages, (newLanguages) => {
+    //   if (
+    //     newLanguages.length === languageLimit.value &&
+    //     selected_domain.value
+    //   ) {
+    //     popFinalizeCheckout()
+    //   }
+    // })
 
     watch(selected_domain, (newDomain) => {
       if (
-        selected_languages.value.length === languageLimit.value &&
+        languages_saved &&
         newDomain
       ) {
         popFinalizeCheckout()
@@ -553,11 +555,13 @@ export default {
     }
 
     function handleShowOverlay(value) {
+      languages_saved.value = value
       show_overlay.value = value
     }
 
     function handleOverlayClick() {
       show_overlay.value = false
+      languages_saved.value = false
       finalizeCheckout.value?.handleHeaderClick()
     }
 
@@ -566,16 +570,22 @@ export default {
         selected_product.value &&
         domain.value &&
         selected_domain.value &&
-        selected_languages.value.length === languageLimit.value
+        selected_languages.value.length > 0
       ) {
         show_overlay.value = true
         finalizeCheckout.value?.handleHeaderClick()
       }
     }
 
+    function handleLanguagesSaved() {
+      if (selected_languages.value.length > 0) {
+        languages_saved.value = true
+        popFinalizeCheckout()
+      }
+    }
+
     function editSelectedLanguages() {
-      showLanguageWarning.value = false
-      selected_languages.value = []
+      languages_saved.value = false
     }
 
     function removeSelectedLanguage(language) {
@@ -747,6 +757,7 @@ export default {
       selected_languages,
       languageLimit,
       showLanguageWarning,
+      languages_saved,
       selected_domain,
       show_overlay,
       lock_billing_term,
@@ -761,6 +772,7 @@ export default {
       editSelectedProduct,
       editSelectedDomain,
       handleShowOverlay,
+      handleLanguagesSaved,
       handleOverlayClick,
       editSelectedLanguages,
       removeSelectedLanguage,
