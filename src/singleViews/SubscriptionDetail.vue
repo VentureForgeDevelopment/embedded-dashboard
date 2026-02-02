@@ -18,7 +18,7 @@
             <a
               href="#"
               @click.prevent="goToAllSubscriptions"
-              class="subscription-link"
+              class="subscription-link subscription-link-all"
               >All</a
             >
           </li>
@@ -27,7 +27,7 @@
               href="#"
               @click.prevent="goToSubscriptionDetail(subscription.id)"
               :class="[
-                'subscription-link ',
+                'subscription-link', 'truncate-text',
                 { active: subscription.id === selectedSubscriptionId },
               ]"
               v-if="subscription && subscription.license"

@@ -687,11 +687,18 @@ button.btn-primary:hover {
   transition: all 0.2s ease;
 }
 
+.subscriptions-switch-wrapper .subscription-link.subscription-link-all{
+  font-weight:bold;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
+}
+
 .subscriptions-switch-wrapper .subscription-link.active {
   background-color: var(--highlight-color);
   color: white;
   border: 1px solid white;
 }
+
 
 .subscriptions-switch-wrapper .subscription-link:hover {
   background-color: var(--highlight-color);

@@ -14,12 +14,12 @@
         <p class="subscriptions-switch-title">Viewing: All Subscriptions</p>
         <ul>
           <li>
-            <a href="#" class="subscription-link active">All</a>
+            <a href="#" class="subscription-link subscription-link-all active">All</a>
           </li>
           <li v-for="subscription in subscriptions" :key="subscription.id">
             <a
               href="#"
-              class="subscription-link"
+              class="subscription-link truncate-text"
               v-if="subscription.license"
               @click.prevent="goToSubscriptionDetail(subscription.id)"
               >{{ subscription.license.domain_name }}</a
