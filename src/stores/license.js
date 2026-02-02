@@ -106,7 +106,7 @@ export const useLicenseStore = defineStore("license", () => {
       const { license_id, license_key, subscription_id } = payload
 
       const formData = new FormData()
-      formData.append("action", "wld_save_license_key")
+      formData.append("action", "webliaiw_save_license_key")
       formData.append("nonce", saveLicenseKeyNonce)
       formData.append("license_id", license_id)
       formData.append("license_key", license_key)

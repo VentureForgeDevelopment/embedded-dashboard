@@ -73,7 +73,7 @@ export const useAuthStore = defineStore("auth", () => {
         const wpData = window.WebLinguistDashboard
         if (wpData && wpData.ajaxUrl && wpData.saveTokenNonce) {
           const formData = new FormData()
-          formData.append("action", "wld_save_auth_token")
+          formData.append("action", "webliaiw_save_auth_token")
           formData.append("token", token)
           formData.append("nonce", wpData.saveTokenNonce)
 
@@ -133,7 +133,7 @@ export const useAuthStore = defineStore("auth", () => {
         const wpData = window.WebLinguistDashboard
         if (wpData && wpData.ajaxUrl && wpData.saveTokenNonce) {
           const formData = new FormData()
-          formData.append("action", "wld_save_auth_token")
+          formData.append("action", "webliaiw_save_auth_token")
           formData.append("token", token)
           formData.append("nonce", wpData.saveTokenNonce)
 
@@ -272,7 +272,7 @@ export const useAuthStore = defineStore("auth", () => {
         const wpData = window.WebLinguistDashboard
         if (wpData && wpData.ajaxUrl && wpData.clearTokenNonce) {
           const formData = new FormData()
-          formData.append("action", "wld_clear_auth_token")
+          formData.append("action", "webliaiw_clear_auth_token")
           formData.append("nonce", wpData.clearTokenNonce)
 
           await fetch(wpData.ajaxUrl, {
