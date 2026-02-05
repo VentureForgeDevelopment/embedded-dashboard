@@ -193,18 +193,18 @@ export default {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary, #111);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem!important;
 }
 
 .subtitle {
   font-size: 1.25rem;
   color: var(--text-secondary, #555);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem!important;
 }
 
 .description {
   color: var(--text-secondary, #555);
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.5rem!important;
   line-height: 1.6;
 }
 

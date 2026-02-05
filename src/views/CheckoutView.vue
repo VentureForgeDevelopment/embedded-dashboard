@@ -27,10 +27,11 @@
         { 'is-onboarding': !initialOnboardComplete },
       ]"
     >
+    <!-- static steps here are currently used for embedded dashboard method, where the domain selection is not required -->
       <WalkthroughContainer
         v-if="!initialOnboardComplete && isEmbedded"
         mode="static"
-        :static-steps="['Sign Up', 'Setup Your Plan', 'Translate Your Website']"
+        :static-steps="['Create Your Account', 'Choose Your Language', 'Activate Translation']" 
         :current-static-step-index="1"
       />
       <WalkthroughContainer v-else-if="!initialOnboardComplete" />
@@ -46,6 +47,11 @@
               </ul>
            </details> -->
           </div>
+        </div>
+
+        <div v-if="!initialOnboardComplete" class="onboard-step-header">
+          <p class="step-description">Step 2 of 3</p> 
+          <p>You can update your site address or add more languages later. We’ll scan your site to prepare translations. Nothing will change until you install the translator.</p>
         </div>
 
         <div
@@ -167,6 +173,7 @@
             v-model="domain"
             v-model:selectedDomain="selected_domain" 
             :show-select-btn="true"
+            :inital-onboard-complete="initialOnboardComplete"
           />
           </div>
         </div>
@@ -189,6 +196,7 @@
           <label for="language_select" class="section-title">
             <p class="section-title-text">
               <span v-if="current_subscription_product">Adjust Translations</span>
+              <span v-else-if="!current_subscription_product && !initialOnboardComplete">Choose Your First Language</span>
               <span v-else>Select Translations</span>
 
               <CheckCircleIcon
@@ -224,9 +232,14 @@
             v-model="selected_languages"
             :language-limit="languageLimit"
             :show-save-btn="true"
+            :initial-onboard-complete="initialOnboardComplete"
             @save="handleLanguagesSaved"
           />
         </div>
+
+        <p v-if="selected_domain" class="checkout-page-assurance-msg">
+          Your translations will be prepared in the next step. <span v-if="!isEmbedded">You’ll install the translator before anything goes live.</span>
+        </p>
       </div>
     </div>
 
@@ -728,7 +741,9 @@ export default {
                   selectedProduct(starterProduct, monthlyPrice)
               }
             }
-            unsub() // Stop watching after selection
+            nextTick(() => {
+              unsub() // Stop watching after selection
+            })
           }
         }, { immediate: true })
       }
@@ -842,6 +857,15 @@ export default {
 .selection-setup-container{
 }
 
+.selection-setup-container .onboard-step-header{
+  margin-bottom:3rem;
+  text-align: left;
+}
+.selection-setup-container .onboard-step-header .step-description{
+  font-size:1.5rem;
+  font-weight: bold;
+}
+
 .selection-setup-container .section-container:nth-child(1) {
   margin-top:0!important;
 }
@@ -878,7 +902,7 @@ export default {
 
 .current-plan-container .section-title {
   display: flex;
-  margin-bottom:0;
+  margin-bottom:0!important;
   justify-content: space-between;
   align-items: center;
 }
@@ -932,6 +956,12 @@ export default {
   min-width: 80px;
   width: max-content;
   display:inline-flex;
+}
+
+.checkout-page-assurance-msg {
+  font-weight: 400;
+  color: #212529;
+  text-align: left;
 }
 
 .spinning {

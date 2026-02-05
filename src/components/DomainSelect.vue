@@ -21,7 +21,8 @@
         ]"
         @click="selectDomain()"
       >
-        Save
+        <span v-if="!initialOnboardComplete">Continue to Language Selection</span>
+        <span v-else>Save</span>
       </button>
     </div>
     <div v-if="v$.domainValue.$error" class="validation-error-message">
@@ -66,6 +67,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    initialOnboardComplete: {
+      type: Boolean,
+      required: false
+    }
   },
   emits: ["update:modelValue", "update:selectedDomain"],
   setup(props, { emit }) {

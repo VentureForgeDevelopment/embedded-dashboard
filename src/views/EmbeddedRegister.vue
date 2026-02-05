@@ -2,25 +2,43 @@
   <div class="registration-layout">
     <WalkthroughContainer 
       mode="static"
-      :static-steps="['Sign Up', 'Setup Your Plan', 'Translate Your Website']"
+      :static-steps="['Create Your Account', 'Choose Your Language', 'Activate Translation']"
       :current-static-step-index="0"
     />
     <div class="form-container">
-      <h3>Create an Account to Get Started</h3>
+      <h3>Create an account to prepare your website for translation</h3>
+      <p>You’ll add your site and choose your language next.</p>
       <p class="current-step-container">
-        Step 1 of 3: Sign Up
+        Step 1 of 3: Create Your Account
       </p>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="email">Email Address</label>
           <input type="email" id="email" v-model="email" required autocomplete="email" />
+          <p class="email-assurance-msg">
+            We’ll send your temp password. No spam.
+          </p>
         </div>
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Creating Account...' : 'Register' }}
-        </button>
+        <div class="submit-box">
+          <button type="submit" :disabled="isLoading">
+            {{ isLoading ? 'Creating Account...' : 'Continue to Setup' }}
+          </button>
+          <div class="license-agreement-cta">
+            <div>
+              <p class="next-steps">
+                <span style="font-weight:bold;">What happens next:</span> &#8226; Choose your first language, &#8226; Activate translation for
+                $1
+              </p>
+              <p>
+                By continuing, you agree to our
+                <a href="https://weblinguist.ai/license/" target="_blank">License Terms</a>.
+              </p>
+            </div>
+          </div>
+        </div>
       </form>
       <div class="toggle-link">
         Already have an account? <a href="#" @click.prevent="$emit('switchToLogin')">Login here</a>
@@ -113,10 +131,10 @@ h3 {
 .current-step-container {
   font-size: 1rem;
   font-weight: bold;
-  margin-bottom: 24px;
+  margin-bottom: 24px!important;
   display: block;
-  margin-block-end: 24px;
-  margin-block-start: 14px;
+  margin-block-end: 24px!important;
+  margin-block-start: 14px!important;
   text-align: center;
   color: var(--text-secondary);
 }
@@ -171,6 +189,35 @@ form button[type="submit"]:hover {
 form button[type="submit"]:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+.email-assurance-msg {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  text-align: left;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+.license-agreement-cta {
+  margin-top: 1rem;
+}
+.license-agreement-cta p {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1rem!important;
+}
+.license-agreement-cta p:last-child {
+  margin-bottom: 0;
+}
+.license-agreement-cta p.next-steps {
+  width: 75%;
+  margin: 1rem auto!important;
+}
+.bold {
+  font-size: 1rem;
+  font-weight: 600;
 }
 .toggle-link {
   margin-top: 1.5rem;

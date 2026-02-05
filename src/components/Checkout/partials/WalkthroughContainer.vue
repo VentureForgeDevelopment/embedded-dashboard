@@ -2,7 +2,7 @@
   <div class="walkthrough-container">
     <div class="walkthrough-sidebar">
       <div class="steps-list-container">
-        <h1>Lets Get Started</h1>
+        <h1>Start Translating in Minutes</h1>
         <div class="horizontal-scroll-helper">
           <!-- Dynamic steps from notifications -->
           <ul v-if="mode === 'notifications'">
@@ -15,7 +15,7 @@
               :key="step.id"
             >
               <span class="completed-indicator">
-                <span v-if="step.viewed" style="width:36px; height:36px;">
+                <span v-if="step.viewed" style="width: 36px; height: 36px">
                   <CheckCircleIcon fill-color="white" size="36" />
                 </span>
               </span>
@@ -27,10 +27,16 @@
             <li
               v-for="(step, index) in staticSteps"
               :key="index"
-              :class="[{ 'completed-step': index < currentStaticStepIndex }, { 'current-step': index === currentStaticStepIndex }]"
+              :class="[
+                { 'completed-step': index < currentStaticStepIndex },
+                { 'current-step': index === currentStaticStepIndex },
+              ]"
             >
               <span class="completed-indicator">
-                <span v-if="index < currentStaticStepIndex" style="width:36px; height:36px;">
+                <span
+                  v-if="index < currentStaticStepIndex"
+                  style="width: 36px; height: 36px"
+                >
                   <CheckCircleIcon fill-color="white" size="36" />
                 </span>
               </span>
@@ -40,13 +46,14 @@
         </div>
       </div>
     </div>
+    <p class="assurance-msg">Easy Setup · Cancel Anytime</p>
   </div>
 </template>
 
 <script>
 import { ref, computed, watchEffect } from "vue"
 import { useAccountStore } from "../../../stores/account"
-import { parseNotification } from '../../../../parseNotification'
+import { parseNotification } from "../../../../parseNotification"
 import CheckCircleIcon from "vue-material-design-icons/CheckCircle.vue"
 
 export default {
@@ -73,14 +80,14 @@ export default {
     const accountStore = useAccountStore()
 
     //computed
-    const stepsToDisplay  = computed(
-      () => accountStore.state.initial_onboard_steps
+    const stepsToDisplay = computed(
+      () => accountStore.state.initial_onboard_steps,
     )
 
     //watchers
     watchEffect(() => {
       // Only run this watcher for notification mode
-      if (props.mode === 'notifications' && stepsToDisplay.value) {
+      if (props.mode === "notifications" && stepsToDisplay.value) {
         getFirstUnviewedStep()
       }
     })
@@ -93,7 +100,7 @@ export default {
 
     function getFirstUnviewedStep() {
       // This function is only for notification mode
-      if (props.mode !== 'notifications' || !stepsToDisplay.value) return;
+      if (props.mode !== "notifications" || !stepsToDisplay.value) return
 
       const firstUnviewedStep =
         stepsToDisplay.value.find((step) => !step.viewed) || null
@@ -119,8 +126,9 @@ export default {
   width: 100%;
   min-height: 100vh;
   background-color: transparent;
-    background-image: linear-gradient(184deg, #05c7f2 0%, #054ef2 100% 100%);
+  background-image: linear-gradient(184deg, #05c7f2 0%, #054ef2 100% 100%);
   box-shadow: 0px 0px 80px #929292;
+  position: relative;
 }
 .walkthrough-sidebar {
   color: white;
@@ -128,6 +136,13 @@ export default {
   justify-content: center;
   padding-top: 20vh;
   text-align: left;
+}
+p.assurance-msg {
+  position: absolute;
+  bottom: 0;
+  right: 25px;
+  padding-bottom:2rem;
+  color: white;
 }
 .steps-list-container {
   width: 75%;
@@ -190,7 +205,8 @@ export default {
     transform: scale(1);
   }
   50% {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+    text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.8),
       0 0 30px rgba(255, 255, 255, 0.75);
     transform: scale(1.05);
   }
@@ -198,7 +214,7 @@ export default {
 
 @media screen and (max-width: 769px) {
   .walkthrough-container {
-    display:none;
+    display: none;
     min-height: auto;
     padding-top: 65px;
     margin-bottom: 45px;

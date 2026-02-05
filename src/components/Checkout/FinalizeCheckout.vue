@@ -1,14 +1,20 @@
 <template>
-  <div :class="['finalize-checkout', { 'has-content': checkoutProduct, 'is-embedded': isEmbedded }]">
+  <div
+    :class="[
+      'finalize-checkout',
+      { 'has-content': checkoutProduct, 'is-embedded': isEmbedded },
+    ]"
+  >
     <div>
       <div class="finalize-checkout-top" @click.stop="handleHeaderClick">
         <div v-if="checkoutProduct">
           <p>
             <span v-if="!show" class="expand-drawer-cta">
-              Click Here to Checkout
+              Click Here to Activate Translation
             </span>
             <span v-else>
-              Checkout
+              Step 3 of 3 · Activate Translation · $1 to get started · Cancel
+              anytime
             </span>
           </p>
         </div>
@@ -41,37 +47,46 @@
             <ProductPreview
               v-if="initial_onboard_setup"
               :title="product.name === 'Starter' ? 'Standard' : product.name"
-              body="Go global in minutes. Instantly translate your website into over 20 languages, complete with our advanced text-to-speech engine. Unlock new markets, dominate international SEO, and connect with a worldwide audience—no coding required."
+              body="Go global in minutes. Instantly translate your website into over 20 languages, complete with our advanced text-to-speech engine. No coding required."
             />
             <ProductPreview
               v-else
-              title="Grow Your Business with AI-Powered Translation"
-              :body="
-                price.recurring.interval === 'year'
-                  ? 'Web Linguist makes it easy to translate your website into multiple languages, helping businesses boost engagement, improve SEO, and increase conversions worldwide. Get started now!'
-                  : 'Web Linguist makes it easy to translate your website into multiple languages, helping businesses boost engagement, improve SEO, and increase conversions worldwide. Get started now for as low as $1 for your first month!'
-              "
+              title="Start Translating Your Website Today"
+              body="Activate AI-powered translation for your site. Nothing goes live until you install the translator."
             />
 
             <div class="checkout-selection-details">
+              <p class="checkout-selection-details-header">
+                You're Setting Up:
+              </p>
               <p class="selected-domain">
-                <span class="domain-label">Domain:</span>
+                <span class="domain-label">Website:</span>
                 <span class="domain-value">
                   <a :href="domain" class="domain-link" target="_blank">{{
                     domain
                   }}</a>
                 </span>
               </p>
-              <ul class="selected-languages">
-                <li v-for="language in selected_languages" :key="language.id">
-                  <span class="code">{{ language.code }}</span>
-                  <span
-                    class="flag-icon"
-                    v-if="language.flag"
-                    v-html="language.flag"
-                  ></span>
-                </li>
-              </ul>
+              <div class="selected-languages">
+                Languages:
+                <span>
+                  <ul class="selected-languages">
+                    <li
+                      v-for="language in selected_languages"
+                      :key="language.id"
+                    >
+                      <span class="code">{{ language.code }}</span>
+                      <span
+                        class="flag-icon"
+                        v-if="language.flag"
+                        v-html="language.flag"
+                      ></span>
+                    </li>
+                  </ul>
+                </span>
+              </div>
+
+              <p class="product">Plan: {{ product.name }}</p>
             </div>
 
             <div
@@ -88,7 +103,7 @@
                   {
                     'addon-selected':
                       selected_addon_products.findIndex(
-                        (p) => p.id === addonProduct.id
+                        (p) => p.id === addonProduct.id,
                       ) >= 0,
                   },
                 ]"
@@ -123,7 +138,7 @@
               <p style="font-weight: bold; color: var(--primary-color)">
                 No Payment Required
               </p>
-              <p style="font-size: 14px; color: var(--text-secondary)">
+              <p style="font-size: 14px; color: var(--text-secondary); margin: 0.5rem 0;">
                 Start translating your website for free. Upgrade anytime to
                 unlock more features.
               </p>
@@ -186,7 +201,7 @@
             </div>
             <div class="pricing">
               <div class="overview" v-if="realCost">
-                <div>
+                <div v-if="initial_onboard_setup">
                   <div class="centered">
                     <p>
                       <span
@@ -201,7 +216,7 @@
                         <span class="discounted-interval">
                           ${{
                             parseFloat(
-                              price.unit_amount - discountAmount
+                              price.unit_amount - discountAmount,
                             ).toFixed(2)
                           }}
                         </span>
@@ -263,27 +278,30 @@
                     </p>
                   </div>
                 </div>
-                <hr />
+                <hr v-if="initial_onboard_setup" />
 
                 <p v-if="!calculating_real_cost" class="total centered">
                   <span>
                     <span
                       v-if="
-                        planComparison == null ||
-                        (planComparison && planComparison.type === 'upgrade')
+                        (planComparison == null && initial_onboard_setup) ||
+                        (planComparison && planComparison.type === 'upgrade' && initial_onboard_setup)
                       "
                     >
                       ${{ realCost }}
                     </span>
-                    <span v-else> $0 </span>
+                    <span v-else-if="!initial_onboard_setup && !isFreeTier">$1 to get started today</span>
+                    <span v-else> Free Forever.</span>
 
-                    <span class="small-text"> Due Today</span>
+                    <span v-if="initial_onboard_setup" class="small-text"> Due Today</span>
                   </span>
                   <span class="actual-price-description">
-                    <span>
+                    <span v-if="!isFreeTier">
                       Then ${{ parseFloat(price.unit_amount).toFixed(2) }} /
-                      {{ price.recurring.interval }}
+                      {{ price.recurring.interval }}.
                     </span>
+                    <span v-if="!isFreeTier"> Cancel anytime.</span>
+                    <span v-else>Upgrade anytime.</span>
                     <span
                       class="usage-based-addon-description"
                       v-if="
@@ -303,7 +321,7 @@
                         >
                           + ${{
                             parseFloat(
-                              selectCorrectAddonPrice(addonProduct).unit_amount
+                              selectCorrectAddonPrice(addonProduct).unit_amount,
                             ).toFixed(2)
                           }}
                           per event (<span class="small-text">{{
@@ -385,7 +403,7 @@
                   <span v-if="current_subscription && isFreeTier">
                     Confirm Changes
                   </span>
-                  <span v-else> Get Started Free </span>
+                  <span v-else> Activate My Translation </span>
                 </span>
                 <span v-else> Loading... </span>
               </button>
@@ -400,17 +418,24 @@
                 <span v-if="!loading">
                   <span
                     v-if="
-                      planComparison == null ||
-                      (planComparison && planComparison.type === 'upgrade')
+                      (planComparison == null && initial_onboard_setup) ||
+                      (planComparison && planComparison.type === 'upgrade' && initial_onboard_setup)
                     "
                   >
                     Complete Purchase
                   </span>
+                  <span v-else-if="!initial_onboard_setup">Start My $1 Trial</span>
                   <span v-else> Confirm Changes </span>
                 </span>
                 <span v-else> Loading... </span>
               </button>
             </div>
+            <span v-if="!initial_onboard_setup && !isEmbedded" class="script-assurance-msg">
+              Install the translator and go live when you’re ready.
+            </span>
+            <span v-else class="script-assurance-msg">
+              Your translator will be automatically installed.
+            </span>
           </div>
         </div>
         <div class="loading-overlay" v-if="loading">
@@ -508,7 +533,7 @@ export default {
     },
     languages_saved: {
       type: Boolean,
-      default: false
+      default: false,
     },
     setup_your_plan_initial_onboard_step: {
       //used to mark as completed from frontend
@@ -601,11 +626,11 @@ export default {
         prorate.value = true
         return {
           amount: parseFloat(
-            subscriptionStore.state.subscription_proration_preview
+            subscriptionStore.state.subscription_proration_preview,
           ).toFixed(2),
           inverted_amount: parseFloat(
             props.price.unit_amount -
-              subscriptionStore.state.subscription_proration_preview
+              subscriptionStore.state.subscription_proration_preview,
           ).toFixed(2),
         }
       } else {
@@ -749,7 +774,7 @@ export default {
         realAddonPrice = addonProduct.prices.find(
           (price) =>
             price.recurring &&
-            price.recurring.interval === props.price.recurring.interval
+            price.recurring.interval === props.price.recurring.interval,
         )
       }
       return realAddonPrice ? realAddonPrice : addonProduct.prices[0]
@@ -951,10 +976,7 @@ export default {
         .then((res) => {
           if (res && res.data && res.data.success) {
             // If embedded, save the new free license to WordPress options
-            if (
-              window.WebLinguistDashboard?.isEmbedded &&
-              res.data.license
-            ) {
+            if (window.WebLinguistDashboard?.isEmbedded && res.data.license) {
               licenseStore.saveLicenseToWordPress({
                 license_id: res.data.license.id,
                 license_key: res.data.license.license_key,
@@ -1101,7 +1123,7 @@ export default {
           {
             license_id: props.current_subscription.license.id,
           },
-          authStore
+          authStore,
         )
         .then((res) => {
           if (res && res.data && res.data.success) {
@@ -1188,7 +1210,7 @@ export default {
             account_id: authStore.currentAccountId,
           })
         }
-      }
+      },
     )
 
     onUnmounted(() => {
@@ -1371,13 +1393,25 @@ export default {
   display: flex;
   flex-direction: column;
   text-align: left;
-  padding: 0 40px 30px 40px;
+  padding: 0 40px 0px 40px;
 }
 
 .finalize-checkout-bottom
   .segment.selection-details
   div.checkout-selection-details
-  p.selected-domain {
+  .checkout-selection-details-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+  div.checkout-selection-details
+  p.selected-domain,
+  div.checkout-selection-details
+  div.selected-languages,
+  div.checkout-selection-details
+  p.product {
+    font-size:0.9rem;
+    padding:0.25rem;
 }
 
 .finalize-checkout-bottom
@@ -1385,8 +1419,7 @@ export default {
   div.checkout-selection-details
   p.selected-domain
   .domain-label {
-  font-weight: 500;
-  margin-right: 5px;
+  margin-right: 5px!important;
 }
 
 .finalize-checkout-bottom
@@ -1404,7 +1437,6 @@ export default {
   list-style: none;
   padding: 0;
   display: inline-flex;
-  margin-top: 20px;
   width: max-content;
   max-width: 100%;
   overflow-x: auto;
@@ -1439,7 +1471,6 @@ export default {
   ul.selected-languages
   li {
   margin-right: 15px;
-  margin-bottom: 5px;
   padding: 5px 15px;
   font-size: 12px;
   min-width: 70px;
@@ -1591,6 +1622,22 @@ export default {
   font-size: 18px;
   font-weight: 400;
   border-radius: 35px !important;
+}
+.script-assurance-msg{
+  position:absolute;
+  right:15px;
+  bottom:10px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #212529;
+  text-align: left;
+  margin-top:0.25rem;
+  color:#696969;
+}
+@media screen and (max-width: 550px) {
+  .script-assurance-msg{
+    left:15px;
+  }
 }
 .spinning {
   animation: spin 1s linear infinite;

@@ -35,7 +35,7 @@ export default {
   font-size: 32px;
   font-weight: 600;
   line-height: 1.2em;
-  margin-bottom: 15px;
+  margin-bottom: 15px!important;
 }
 .product-preview-body {
   font-size: 16px;

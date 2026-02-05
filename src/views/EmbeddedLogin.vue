@@ -116,10 +116,10 @@ h3 {
 .current-step-container {
   font-size: 1rem;
   font-weight: bold;
-  margin-bottom: 24px;
+  margin-bottom: 24px!important;
   display: block;
-  margin-block-end: 24px;
-  margin-block-start: 14px;
+  margin-block-end: 24px!important;
+  margin-block-start: 14px!important;
   text-align: center;
   color: var(--text-secondary);
 }

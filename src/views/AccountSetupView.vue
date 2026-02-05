@@ -45,7 +45,7 @@
               <div
                 v-if="
                   callParseNotification(step, 'title') ==
-                  'Install Your Translator'
+                  'Activate Translation'
                 "
               >
                 <div @click="copyInstallationScript" class="embed-code">

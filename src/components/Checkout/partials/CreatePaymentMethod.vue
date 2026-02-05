@@ -51,6 +51,13 @@
           @ready="isCardReady = true"
         />
       </StripeElements>
+      <p
+        v-if="!initial_onboard_setup && from === 'finalize_checkout'"
+        class="cc-assurance-msg"
+      >
+        Your card is used to activate the trial. You can cancel anytime before
+        your next billing date.
+      </p>
 
       <br />
 
@@ -78,7 +85,10 @@
         "
         :disabled="!isCardReady"
       >
-        <span v-if="plan_comparison === null"> Complete Purchase </span>
+        <span v-if="plan_comparison === null && initial_onboard_setup">
+          Complete Purchase
+        </span>
+        <span v-else-if="!initial_onboard_setup && from == 'finalize_checkout'">Start My $1 Trial</span>
         <span v-else> Confirm Changes </span>
       </button>
     </div>
@@ -213,7 +223,7 @@ export default {
     const publishable_key = ref(
       import.meta.env.VITE_STRIPE_GATEWAY_MODE === "LIVE"
         ? import.meta.env.VITE_STRIPE_KEY_LIVE
-        : import.meta.env.VITE_STRIPE_KEY_TEST
+        : import.meta.env.VITE_STRIPE_KEY_TEST,
     )
     const addonPrices = ref([])
 
@@ -226,11 +236,11 @@ export default {
         checkoutStore.state.loading.creating_payment_method ||
         checkoutStore.state.loading.subscription_proration_preview ||
         subscriptionStore.state.loading.subscriptions ||
-        subscriptionStore.state.loading.subscription_domain 
+        subscriptionStore.state.loading.subscription_domain
       )
     })
     const setupIntentSecret = computed(
-      () => checkoutStore.state.setup_intent_secret
+      () => checkoutStore.state.setup_intent_secret,
     )
 
     const finalElementsOptions = computed(() => ({
@@ -262,7 +272,7 @@ export default {
         realAddonPrice = addonProduct.prices.find(
           (price) =>
             price.recurring &&
-            price.recurring.interval === props.price.recurring.interval
+            price.recurring.interval === props.price.recurring.interval,
         )
       }
       return realAddonPrice ? realAddonPrice : addonProduct.prices[0]
@@ -297,7 +307,7 @@ export default {
       if (!elementsRef.value || !cardRef.value?.stripeElement) {
         console.error(
           "Stripe elements not ready yet.",
-          finalElementsOptions.value
+          finalElementsOptions.value,
         )
         Swal.fire({
           title: "Error",
@@ -322,7 +332,7 @@ export default {
                 name: name_on_card.value,
               },
             },
-          }
+          },
         )
 
         if (error) {
@@ -609,7 +619,7 @@ export default {
           })
       } else {
         console.log(
-          "Subscription update halted because payment method creation failed."
+          "Subscription update halted because payment method creation failed.",
         )
       }
     }
@@ -653,7 +663,7 @@ export default {
 <style scoped>
 .show-btn-absolute-helper {
   position: absolute;
-  bottom: 25px;
+  bottom: 35px;
   right: 25px;
   padding: 15px 25px !important;
   font-size: 18px;
@@ -673,10 +683,20 @@ export default {
   border: 1px solid black;
   border-radius: 4px;
   padding: 9.5px 15px;
-  transition: ease-in-out, border-color 0.15s ease-in-out;
+  transition:
+    ease-in-out,
+    border-color 0.15s ease-in-out;
 }
 .stripe-card:hover {
   border-color: #aaaea6;
+}
+.cc-assurance-msg {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #212529;
+  text-align: left;
+  margin-top:0.25rem;
+  color:#696969;
 }
 @media screen and (min-width: 1801px) {
   .show-btn-absolute-helper {

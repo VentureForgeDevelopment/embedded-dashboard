@@ -3,7 +3,8 @@
     <div class="language-select-wrapper section-content">
       <div class="languages-selection-wrapper">
         <div v-if="showLanguageWarning" class="language-limit-reached">
-          Language Limit Reached
+          <p v-if="!initialOnboardComplete">Starter plan includes 1 language</p>
+          <p v-else>Language Limit Reached</p>
         </div>
         <LlInput
           v-model="languageSearch"
@@ -45,6 +46,10 @@
             <span> ({{ language.code }}) </span>
           </option>
         </LlSelect>
+        <p class="language-select-assurance-msg">
+          Start with your most important audience. You can add more languages
+          anytime.
+        </p>
         <span
           v-if="showLanguageWarning"
           class="tooltip-container"
@@ -53,7 +58,11 @@
       </div>
 
       <div class="selected-languages-wrapper">
-        <p>
+        <p v-if="!initialOnboardComplete">
+          <span v-if="selectedLanguages.length"> 1 Language Selected </span>
+          <span v-else> 0 Languages Selected </span>
+        </p>
+        <p v-else>
           {{ selectedLanguages.length }}/{{ languageLimit }} Languages Selected
         </p>
         <div
@@ -88,7 +97,8 @@
           ]"
           :disabled="selectedLanguages.length === 0"
         >
-          Save
+        <span v-if="!initialOnboardComplete">Continue to Activation</span>
+        <span v-else>Save</span>
         </button>
       </div>
     </div>
@@ -121,6 +131,10 @@ export default {
     showSaveBtn: {
       type: Boolean,
       default: false,
+    },
+    initialOnboardComplete: {
+      type: Boolean,
+      required: false,
     },
   },
   emits: ["update:modelValue", "save"],
@@ -189,6 +203,13 @@ export default {
   margin-top: 1rem;
   display: grid;
   grid-template-columns: 65% 35%;
+}
+.language-select-assurance-msg {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #212529;
+  text-align: left;
+  margin: 0.5rem 0;
 }
 .section-container-collapsed .language-select-wrapper {
   margin-top: 0;

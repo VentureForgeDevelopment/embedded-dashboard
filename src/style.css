@@ -21,6 +21,12 @@
   line-height: 1.6;
 }
 
+/* embedded dashboard style overrides */
+#app p{
+  margin:initial;
+  line-height: 1.6;
+}
+
 hr {
   margin: 1rem 0;
   border-color: var(--border-color);
@@ -128,7 +134,7 @@ h1 {
 }
 
 .section-container.collapse-width {
-  min-width: 250px;
+  min-width: 350px;
   max-width: fit-content;
 }
 
@@ -147,7 +153,7 @@ h1 {
 }
 
 .section-container-collapsed .section-title {
-  margin-bottom: 0;
+  margin-bottom: 0!important;
   font-size: 1rem;
 }
 
@@ -161,13 +167,13 @@ h1 {
   font-weight: 600!important;
   color: var(--text-primary);
   justify-content: flex-start;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1rem 0!important;
   align-items: center;
   transition: all 0.2s ease;
 }
 
 .section-title .section-title-text {
-  margin-right: 0.5rem;
+  margin-right: 0.5rem!important;
   display: flex;
   align-items: center;
   font-size: 24px;
@@ -178,7 +184,7 @@ h1 {
   position: absolute;
   top: -30px;
   font-size: 16px;
-  margin: 0;
+  margin: 0!important;
   left: 0;
 }
 
