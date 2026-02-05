@@ -51,7 +51,8 @@
 
         <div v-if="!initialOnboardComplete" class="onboard-step-header">
           <p class="step-description">Step 2 of 3</p> 
-          <p>You can update your site address or add more languages later. We’ll scan your site to prepare translations. Nothing will change until you install the translator.</p>
+          <p>You can update your site address or add more languages later. We’ll scan your site to prepare translations.</p>
+          <p>Nothing will change until you install the translator.</p>
         </div>
 
         <div
@@ -245,7 +246,6 @@
 
     <div
       :class="{ 'finalize-checkout-overlay': show_overlay }"
-      @click="handleOverlayClick()"
     ></div>
 
     <FinalizeCheckout
@@ -572,12 +572,6 @@ export default {
       show_overlay.value = value
     }
 
-    function handleOverlayClick() {
-      show_overlay.value = false
-      languages_saved.value = false
-      finalizeCheckout.value?.handleHeaderClick()
-    }
-
     function popFinalizeCheckout() {
       if (
         selected_product.value &&
@@ -788,7 +782,6 @@ export default {
       editSelectedDomain,
       handleShowOverlay,
       handleLanguagesSaved,
-      handleOverlayClick,
       editSelectedLanguages,
       removeSelectedLanguage,
       showDiscountedPrice,

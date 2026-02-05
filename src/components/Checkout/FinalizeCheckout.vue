@@ -1708,6 +1708,9 @@ export default {
     div.addon-selection-details {
     margin: 0 15px;
   }
+  .checkout-button{
+    margin-bottom:15px;
+  }
 }
 @media screen and (max-width: 769px) {
   .hide-on-mobile {

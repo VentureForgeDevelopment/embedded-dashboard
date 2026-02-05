@@ -139,9 +139,9 @@ export default {
 }
 p.assurance-msg {
   position: absolute;
-  bottom: 0;
-  right: 25px;
-  padding-bottom:2rem;
+  margin: 0;
+  bottom: 15px;
+  left: 15%;
   color: white;
 }
 .steps-list-container {
@@ -174,8 +174,7 @@ p.assurance-msg {
   opacity: 1;
   text-decoration: line-through;
 }
-.steps-list-container ul li.completed-step span.completed-indicator,
-.steps-list-container ul li.current-step span.completed-indicator {
+.steps-list-container ul li span.completed-indicator {
   display: inline-flex;
   width: 30px;
   min-width: 30px;
