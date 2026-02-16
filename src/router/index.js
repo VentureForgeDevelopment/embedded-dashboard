@@ -18,6 +18,7 @@ import EditAccountView from "../views/EditAccountView.vue"
 import { config } from "../config/environment"
 import { useAuthStore } from "../stores/auth"
 import { useLicenseStore } from "../stores/license"
+import { getPlatform } from "../utils/platform-bridge"
 import InsufficientAccessLevel from "../views/InsufficientAccessLevel.vue"
 import SuccessConfirmation from "../views/SuccessConfirmation.vue"
 import ReferralsView from "../views/ReferralsView.vue"
@@ -217,11 +218,14 @@ export const createRouterInstance = (embeddedObject = null) => {
     const isEmbedded = !!embeddedObject
 
     // If in embedded mode and navigating to overview, redirect to the active license or websites list.
+    // Shopify defaults to the customize tab; WordPress defaults to the overview tab.
+    const defaultLicenseRoute = getPlatform() === "shopify" ? "manage-license-customize" : "manage-license"
+
     if (isEmbedded && to.name === "overview") {
       if (licenseStore.state.active_license) {
         console.log("Dashboard router guard - Redirecting embedded 'overview' to active license.");
         return next({
-          name: "manage-license",
+          name: defaultLicenseRoute,
           params: { id: licenseStore.state.active_license.id },
         })
       } else {
@@ -251,7 +255,7 @@ export const createRouterInstance = (embeddedObject = null) => {
       if (isEmbedded && licenseStore.state.active_license) {
         console.log("Dashboard router guard - Redirecting authenticated embedded user to active license.");
         return next({
-          name: "manage-license",
+          name: defaultLicenseRoute,
           params: { id: licenseStore.state.active_license.id },
         })
       } else {

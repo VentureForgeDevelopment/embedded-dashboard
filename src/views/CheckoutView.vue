@@ -289,6 +289,7 @@ import LlInput from "../components/Root/Input/LlInput.vue"
 import CheckCircleIcon from "vue-material-design-icons/CheckCircle.vue"
 import Pencil from "vue-material-design-icons/Pencil.vue"
 import Close from "vue-material-design-icons/Close.vue"
+import { getStoreDomain } from "../utils/platform-bridge"
 
 export default {
   name: "CheckoutView",
@@ -427,7 +428,7 @@ export default {
     //watchers
     watch(isEmbedded, (embedded) => {
       if (embedded) {
-        domain.value = window.location.hostname
+        domain.value = getStoreDomain()
         selected_domain.value = true
       }
     }, {

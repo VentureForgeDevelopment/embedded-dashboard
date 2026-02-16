@@ -3,6 +3,7 @@ import { ref, computed } from "vue"
 import { config } from "../config/environment"
 import api from "../utils/api"
 import { useAuthStore } from "./auth"
+import { saveLicenseToPlatform, getStoreDomain } from "../utils/platform-bridge"
 
 const speechBubbleIconUrl = new URL(
   "../assets/images/bubble_icon.png",
@@ -96,51 +97,12 @@ export const useLicenseStore = defineStore("license", () => {
   }
 
   //actions
+  /**
+   * @deprecated Use saveLicenseToPlatform from platform-bridge.js directly.
+   * Kept as a local wrapper for backward compatibility with existing call sites.
+   */
   function saveLicenseToWordPress(payload) {
-    return new Promise((resolve, reject) => {
-      if (!window.WebLinguistDashboard?.isEmbedded) {
-        return reject(new Error("Not in embedded WordPress mode."))
-      }
-
-      const { ajaxUrl, saveLicenseKeyNonce } = window.WebLinguistDashboard
-      const { license_id, license_key, subscription_id } = payload
-
-      const formData = new FormData()
-      formData.append("action", "webliaiw_save_license_key")
-      formData.append("nonce", saveLicenseKeyNonce)
-      formData.append("license_id", license_id)
-      formData.append("license_key", license_key)
-      formData.append("subscription_id", subscription_id || "")
-
-      // Using fetch directly as `api` util is for the main app API.
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok")
-          }
-          return response.json()
-        })
-        .then((data) => {
-          if (data.success) {
-            console.log(
-              "Successfully saved license to WordPress.",
-              data.data.message
-            )
-            resolve(data)
-          } else {
-            throw new Error(
-              data.data.message || "Failed to save license to WordPress."
-            )
-          }
-        })
-        .catch((error) => {
-          console.error("Error saving license to WordPress:", error)
-          reject(error)
-        })
-    })
+    return saveLicenseToPlatform(payload)
   }
 
   function getLicenses() {
@@ -159,7 +121,7 @@ export const useLicenseStore = defineStore("license", () => {
           if (window.WebLinguistDashboard?.isEmbedded) {
             const allLicenses = res.data.data || []
             const wpLicenseId = window.WebLinguistDashboard.licenseId
-            const currentHostname = window.location.hostname
+            const currentHostname = getStoreDomain()
             let activeLicense = null
 
             if (wpLicenseId) {

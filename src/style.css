@@ -251,7 +251,6 @@ h1 {
 .tooltip-container {
   position: relative; /* Essential for positioning the ::after element */
   display: inline-block; /* Adjust as needed for layout */
-  cursor: not-allowed;
 }
 
 .tooltip-container::after {
@@ -266,7 +265,7 @@ h1 {
   border-radius: 4px;
   white-space: nowrap; /* Prevent text wrapping */
   opacity: 0; /* Initially hide the tooltip */
-  visibility: hidden;
+  visibility: visible;
   transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
   z-index: 10; /* Ensure tooltip appears on top */
 }

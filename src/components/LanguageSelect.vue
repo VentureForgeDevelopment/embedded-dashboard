@@ -3,8 +3,7 @@
     <div class="language-select-wrapper section-content">
       <div class="languages-selection-wrapper">
         <div v-if="showLanguageWarning" class="language-limit-reached">
-          <p v-if="!initialOnboardComplete">Starter plan includes 1 language</p>
-          <p v-else>Language Limit Reached</p>
+          <p v-if="initialOnboardComplete">Language Limit Reached</p>
         </div>
         <LlInput
           v-model="languageSearch"
@@ -59,6 +58,7 @@
 
       <div class="selected-languages-wrapper">
         <p v-if="!initialOnboardComplete">
+          <span v-if="showLanguageWarning" class="single-language-warning">Starter plan includes 1 language</span>
           <span v-if="selectedLanguages.length"> 1 Language Selected </span>
           <span v-else> 0 Languages Selected </span>
         </p>
@@ -222,13 +222,20 @@ select option {
 :deep(#language_select .is-selected) {
   /* Note: Styling of <option> elements is inconsistent across browsers. This works well in Firefox. */
   background-color: var(--accent-color) !important;
-  color: white;
+  color: #F4F016;
   font-weight: 600;
 }
 
 .language-limit-reached {
   font-size: 0.9em;
   color: var(--accent-color);
+}
+.single-language-warning{
+  font-size: 0.9em;
+  display: block;
+  color: black;
+  font-weight:400;
+  font-size:14px;
 }
 .selected-languages-wrapper {
   padding: 0 20px;

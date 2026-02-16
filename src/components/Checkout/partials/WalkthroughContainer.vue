@@ -8,14 +8,14 @@
           <ul v-if="mode === 'notifications'">
             <li
               :class="[
-                { 'completed-step': step.viewed },
+                { 'completed-step': step.viewed || (isSecondStep(step) && isDrawerOpen) },
                 { 'current-step': current_step && step.id === current_step.id },
               ]"
               v-for="step in stepsToDisplay"
               :key="step.id"
             >
               <span class="completed-indicator">
-                <span v-if="step.viewed" style="width: 36px; height: 36px">
+                <span v-if="step.viewed || (isSecondStep(step) && isDrawerOpen) " style="width: 36px; height: 36px">
                   <CheckCircleIcon fill-color="white" size="36" />
                 </span>
               </span>
@@ -28,13 +28,13 @@
               v-for="(step, index) in staticSteps"
               :key="index"
               :class="[
-                { 'completed-step': index < currentStaticStepIndex },
-                { 'current-step': index === currentStaticStepIndex },
+                { 'completed-step': index < localCurrentStaticStepIndex },
+                { 'current-step': index === localCurrentStaticStepIndex },
               ]"
             >
               <span class="completed-indicator">
                 <span
-                  v-if="index < currentStaticStepIndex"
+                  v-if="index < localCurrentStaticStepIndex"
                   style="width: 36px; height: 36px"
                 >
                   <CheckCircleIcon fill-color="white" size="36" />
@@ -51,8 +51,9 @@
 </template>
 
 <script>
-import { ref, computed, watchEffect } from "vue"
+import { ref, computed, watchEffect, watch } from "vue"
 import { useAccountStore } from "../../../stores/account"
+import { useCheckoutStore } from "../../../stores/checkout"
 import { parseNotification } from "../../../../parseNotification"
 import CheckCircleIcon from "vue-material-design-icons/CheckCircle.vue"
 
@@ -78,17 +79,44 @@ export default {
   setup(props) {
     const current_step = ref(null)
     const accountStore = useAccountStore()
+    const checkoutStore = useCheckoutStore()
 
     //computed
     const stepsToDisplay = computed(
       () => accountStore.state.initial_onboard_steps,
     )
 
+    const isDrawerOpen = computed(() => {
+      return checkoutStore.state.checkout_drawer_open
+    })
+
+    const localCurrentStaticStepIndex = computed(() => {
+      if (
+        props.mode === "static" &&
+        props.currentStaticStepIndex === 1 &&
+        isDrawerOpen.value
+      ) {
+        return 2
+      }
+      return props.currentStaticStepIndex
+    })
+
     //watchers
     watchEffect(() => {
       // Only run this watcher for notification mode
       if (props.mode === "notifications" && stepsToDisplay.value) {
         getFirstUnviewedStep()
+      }
+    })
+
+    watch(isDrawerOpen, (newValue) => {
+      const stepsArray = stepsToDisplay.value
+      const secondStep = stepsArray[1] || null
+      const thirdStep = stepsArray[2] || null
+      if (isDrawerOpen.value) {
+        current_step.value = thirdStep
+      } else {
+        current_step.value = secondStep
       }
     })
 
@@ -110,11 +138,19 @@ export default {
       }
     }
 
+    function isSecondStep(step) {
+      const title = callParseNotification(step, 'title') || null
+      return title === 'Choose Your Site & Language'
+    } 
+
     return {
       stepsToDisplay,
       current_step,
+      localCurrentStaticStepIndex,
+      isDrawerOpen,
       //methods
       callParseNotification,
+      isSecondStep,
       //components
       CheckCircleIcon,
     }

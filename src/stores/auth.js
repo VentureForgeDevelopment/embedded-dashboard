@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { ref, computed } from "vue"
 import api from "../utils/api"
 import { config } from "../config/environment"
+import { saveTokenToPlatform, clearTokenFromPlatform } from "../utils/platform-bridge"
 
 export const useAuthStore = defineStore("auth", () => {
   // State
@@ -69,26 +70,8 @@ export const useAuthStore = defineStore("auth", () => {
         isAuthenticated.value = true
         initialOnboardComplete.value = 0
 
-        // After successful registration, send the long-lived token back to WordPress to be stored.
-        const wpData = window.WebLinguistDashboard
-        if (wpData && wpData.ajaxUrl && wpData.saveTokenNonce) {
-          const formData = new FormData()
-          formData.append("action", "webliaiw_save_auth_token")
-          formData.append("token", token)
-          formData.append("nonce", wpData.saveTokenNonce)
-
-          fetch(wpData.ajaxUrl, {
-            method: "POST",
-            body: formData,
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              console.log("Token storage response from WordPress:", data)
-            })
-            .catch((e) =>
-              console.error("Failed to save auth token to WordPress:", e)
-            )
-        }
+        // After successful registration, send the long-lived token back to the host platform to be stored.
+        saveTokenToPlatform(token)
 
         return response.data
       } else {
@@ -129,28 +112,8 @@ export const useAuthStore = defineStore("auth", () => {
         isAuthenticated.value = true
         initialOnboardComplete.value = account?.initial_onboard_complete != 0
 
-        // After successful login, send the long-lived token back to WordPress to be stored.
-        const wpData = window.WebLinguistDashboard
-        if (wpData && wpData.ajaxUrl && wpData.saveTokenNonce) {
-          const formData = new FormData()
-          formData.append("action", "webliaiw_save_auth_token")
-          formData.append("token", token)
-          formData.append("nonce", wpData.saveTokenNonce)
-
-          // Fire and forget this request. We don't need to block the user flow.
-          // Error handling is done via console logging so it can be debugged if needed.
-          fetch(wpData.ajaxUrl, {
-            method: "POST",
-            body: formData,
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              console.log("Token storage response from WordPress:", data)
-            })
-            .catch((e) =>
-              console.error("Failed to save auth token to WordPress:", e)
-            )
-        }
+        // After successful login, send the long-lived token back to the host platform to be stored.
+        saveTokenToPlatform(token)
 
         return response.data
       } else {
@@ -268,18 +231,8 @@ export const useAuthStore = defineStore("auth", () => {
         // 1. Revoke the API token from the backend
         await api.get("user/embedded-logout")
 
-        // 2. Clear the token from WordPress user meta
-        const wpData = window.WebLinguistDashboard
-        if (wpData && wpData.ajaxUrl && wpData.clearTokenNonce) {
-          const formData = new FormData()
-          formData.append("action", "webliaiw_clear_auth_token")
-          formData.append("nonce", wpData.clearTokenNonce)
-
-          await fetch(wpData.ajaxUrl, {
-            method: "POST",
-            body: formData,
-          })
-        }
+        // 2. Clear the token from the host platform (WordPress or Shopify)
+        await clearTokenFromPlatform()
       } catch (err) {
         console.error("Embedded logout error:", err)
         // Continue with client-side cleanup even if server calls fail

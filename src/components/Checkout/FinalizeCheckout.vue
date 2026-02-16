@@ -6,15 +6,14 @@
     ]"
   >
     <div>
-      <div class="finalize-checkout-top" @click.stop="handleHeaderClick">
+      <div class="finalize-checkout-top">
         <div v-if="checkoutProduct">
           <p>
             <span v-if="!show" class="expand-drawer-cta">
               Click Here to Activate Translation
             </span>
             <span v-else>
-              Step 3 of 3 · Activate Translation · $1 to get started · Cancel
-              anytime
+              Step 3 of 3 · Activate Translation
             </span>
           </p>
         </div>
@@ -23,10 +22,16 @@
             type="button"
             class="close-button"
             :aria-label="show ? 'Collapse' : 'Expand'"
-            @click.stop="closeDialog"
+            @click.stop="handleHeaderClick"
           >
-            <ChevronUp v-if="show" size="30" fill-color="gray" />
-            <ChevronDown v-else size="30" fill-color="gray" />
+            <ChevronUp v-if="show && !checkoutProduct" size="35" fill-color="black" class="header-icon-fc has-tooltip" />
+            <ChevronDown v-else size="35" fill-color="black" class="header-icon-fc has-tooltip" />
+
+            <span
+              class="tooltip-container"
+              data-tooltip="Back"
+              style="transform:translate(-25px, -15px)"
+            ></span>
           </button>
         </span>
       </div>
@@ -62,9 +67,7 @@
               <p class="selected-domain">
                 <span class="domain-label">Website:</span>
                 <span class="domain-value">
-                  <a :href="domain" class="domain-link" target="_blank">{{
-                    domain
-                  }}</a>
+                  {{ domain }}
                 </span>
               </p>
               <div class="selected-languages">
@@ -1160,7 +1163,11 @@ export default {
         props.current_subscription == null
       ) {
         attachInitialOnboardCoupon()
+        checkoutStore.setCheckoutDrawerOpen(true);
+      } else {
+        checkoutStore.setCheckoutDrawerOpen(false);
       }
+      
     })
 
     watch(show, (newValue) => {
@@ -1289,7 +1296,10 @@ export default {
   width: 100%;
   padding: 15px;
   border-bottom: 1px solid #929292;
-  cursor: pointer;
+}
+.finalize-checkout-top .header-icon-fc svg{
+  fill:black
+
 }
 .finalize-checkout-top p {
   font-size: 24px;
@@ -1427,7 +1437,7 @@ export default {
   div.checkout-selection-details
   p.selected-domain
   .domain-value {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .finalize-checkout-bottom

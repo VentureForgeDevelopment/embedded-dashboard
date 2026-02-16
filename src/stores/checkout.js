@@ -76,6 +76,7 @@ export const useCheckoutStore = defineStore("checkout", () => {
     coupon_validation_errors: ref([]),
     subscription_coupon_discount: ref(null),
     setup_intent_secret: ref(null),
+    checkout_drawer_open: false,
     loading: {
       checkout_products: false,
       addon_products: false,
@@ -125,6 +126,10 @@ export const useCheckoutStore = defineStore("checkout", () => {
   function clearCoupon() {
     state.value.coupon = null
     state.value.subscription_coupon_discount = null
+  }
+
+  function setCheckoutDrawerOpen(isOpen) {
+    state.value.checkout_drawer_open = isOpen
   }
 
   // Actions
@@ -372,6 +377,7 @@ export const useCheckoutStore = defineStore("checkout", () => {
     handleUpdateSubscription,
     handleCreateFreeLicense,
     setCouponDiscount,
-    setCoupon
+    setCoupon,
+    setCheckoutDrawerOpen,
   }
 })
