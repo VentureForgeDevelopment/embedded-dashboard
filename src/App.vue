@@ -4,8 +4,9 @@ import { useThemeStore } from "./stores/theme"
 import { useAuthStore } from "./stores/auth"
 import { useAccountStore } from "./stores/account"
 import { useSubscriptionStore } from "./stores/subscription"
-import { watchEffect, computed, watch } from "vue"
-import { useRoute } from "vue-router"
+import { useCheckoutStore } from "./stores/checkout"
+import { watchEffect, computed, watch, onMounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import { getCookie, deleteCookie } from "./utils/api"
 
 // Initialize theme
@@ -15,7 +16,9 @@ themeStore.applyTheme()
 const authStore = useAuthStore()
 const accountStore = useAccountStore()
 const subscriptionStore = useSubscriptionStore()
+const checkoutStore = useCheckoutStore()
 const route = useRoute()
+const router = useRouter()
 
 const accountId = computed(() => authStore.currentAccountId)
 const accountRole = computed(() => authStore.currentAccountRole)
@@ -66,6 +69,39 @@ watch(
     }
   }
 )
+
+// Handle Shopify billing confirmation return
+onMounted(async () => {
+  if (window.__wlBillingConfirmed && window.WebLinguistDashboard?.platform === 'shopify') {
+    // Clear flag immediately to prevent retries
+    window.__wlBillingConfirmed = false
+
+    // Remove billing_confirmed from URL so reloads don't re-trigger
+    const url = new URL(window.location.href)
+    url.searchParams.delete('billing_confirmed')
+    window.history.replaceState({}, '', url.toString())
+
+    try {
+      const res = await checkoutStore.activateShopifySubscription()
+      if (res.data?.success) {
+        console.log('[WL] Shopify subscription activated:', res.data)
+
+        // Refresh subscriptions so the billing page shows the new plan
+        if (authStore.currentAccountId) {
+          subscriptionStore.getSubscriptions({
+            account_id: authStore.currentAccountId,
+          })
+        }
+
+        setTimeout(() => {
+          router.push({ path: '/success-confirmation/purchase' })
+        }, 500)
+      }
+    } catch (e) {
+      console.error('[WL] Failed to activate Shopify subscription:', e)
+    }
+  }
+})
 
 watch(
   () => accountId.value,

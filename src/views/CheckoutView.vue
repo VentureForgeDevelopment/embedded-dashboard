@@ -524,15 +524,28 @@ export default {
         return checkoutProducts.value
       }
 
+      // Resolve the current subscription's product name.
+      // Shopify subscriptions use synthetic stripe_price values (e.g., "shopify_standard_monthly")
+      // and store "Standard" as the type, while Stripe products use "Starter" as the name.
+      // Use the shopifyPriceToStripeProductMap to translate when on Shopify.
+      let currentProductName = subscription.value.type
+      const isShopify = window.WebLinguistDashboard?.platform === 'shopify'
+      if (isShopify && subscription.value.stripe_price) {
+        const mappedName = checkoutStore.shopifyPriceToStripeProductMap[subscription.value.stripe_price]
+        if (mappedName) {
+          currentProductName = mappedName
+        }
+      }
+
       // Use the order of keys in checkout_products_features to establish rank.
       const productRankOrder = Object.keys(checkoutStore.state.checkout_products_features)
       const currentRank = productRankOrder.findIndex(
-        (name) => name.toLowerCase() === subscription.value.type.toLowerCase()
+        (name) => name.toLowerCase() === currentProductName.toLowerCase()
       )
 
       // Set the current subscription product for display purposes.
       current_subscription_product.value = checkoutProducts.value.find(
-        (p) => p.name === subscription.value.type
+        (p) => p.name === currentProductName
       )
 
       // If we can't determine the current rank, return no products to avoid confusion.
@@ -614,7 +627,17 @@ export default {
           billing_term.value = true //true = yearly interval
         }
 
-        current_product_features.value = checkoutStore.state.checkout_products_features[subscription.value?.type]
+        // Resolve feature key using Shopify price map when applicable
+        let featureKey = subscription.value?.type
+        if (window.WebLinguistDashboard?.platform === 'shopify' && subscription.value?.stripe_price) {
+          const mappedName = checkoutStore.shopifyPriceToStripeProductMap[subscription.value.stripe_price]
+          if (mappedName) {
+            featureKey = mappedName
+          }
+        } else if (featureKey === 'Standard') {
+          featureKey = 'Starter'
+        }
+        current_product_features.value = checkoutStore.state.checkout_products_features[featureKey]
 
         if (subscription.value) {
           lock_billing_term.value = true

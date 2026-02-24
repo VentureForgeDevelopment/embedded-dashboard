@@ -39,6 +39,10 @@ const isEmbedded = computed(() => {
   return themeStore.isEmbedded
 })
 
+const isShopifyPlatform = computed(() => {
+  return window.WebLinguistDashboard?.platform === 'shopify'
+})
+
 const activeLicense = computed(() => {
   return licenseStore.state.active_license
 })

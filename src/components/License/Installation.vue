@@ -65,7 +65,12 @@
               />
             </svg>
             <h4>Installation Handled Automatically</h4>
-            <p>
+            <p v-if="isShopifyPlatform">
+              To display the language switcher on your storefront, go to your
+              Shopify theme editor and enable the Web Linguist app embed toggle
+              in your theme settings.
+            </p>
+            <p v-else>
               Because you are using the WebLinguist WordPress plugin, your
               installation script is automatically embedded into your site.
             </p>
@@ -393,6 +398,7 @@ const showSuccessNotification = ref(false)
 const showFailNotification = ref(false)
 
 const isEmbedded = computed(() => themeStore.isEmbedded)
+const isShopifyPlatform = computed(() => window.WebLinguistDashboard?.platform === 'shopify')
 
 const verificationStatusText = computed(() => {
   if (licenseStore.verificationStatus === "verified") return "Connected"

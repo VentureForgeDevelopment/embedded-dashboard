@@ -14,7 +14,7 @@
           Viewing: {{ subscription.license.domain_name }}
         </p>
         <ul>
-          <li>
+          <li v-if="!isShopifyPlatform">
             <a
               href="#"
               @click.prevent="goToAllSubscriptions"
@@ -50,10 +50,20 @@
               </h3>
               <div class="plan-price">
                 <span class="price">${{ parseFloat(price).toFixed(2) }}</span>
-                <span class="period">/ {{ subscription.interval }}</span>
+                <span class="period">/ {{ resolvedInterval }}</span>
               </div>
             </div>
-            <div class="payment-methods-container">
+            <div v-if="isShopifyPlatform" class="shopify-billing-container">
+              <p class="shopify-billing-label">Billing via Shopify</p>
+              <a
+                :href="'https://' + shopDomain + '/admin/settings/billing'"
+                target="_top"
+                class="btn btn-outline shopify-billing-link"
+              >
+                Manage Billing in Shopify Admin
+              </a>
+            </div>
+            <div v-else class="payment-methods-container">
               <PaymentMethods
                 :subscription="subscription"
                 label="Payment Method"
@@ -104,6 +114,7 @@
                 Downgrade Plan
               </button>
               <button
+                v-if="!isShopifyPlatform"
                 :class="[
                   'btn',
                   'btn-outline',
@@ -117,18 +128,20 @@
           </div>
         </div>
 
-        <div v-if="invoices && invoices.length">
-          <Invoices
-            :invoices="invoices"
-            :upcoming_invoices="upcomingInvoices"
-            :subscriptions="[subscription]"
-            :account_id="subscription.account_id"
-            :payment_method="paymentMethod"
-          />
-        </div>
-        <div v-else>
-          <p>No Invoices Found</p>
-        </div>
+        <template v-if="!isShopifyPlatform">
+          <div v-if="invoices && invoices.length">
+            <Invoices
+              :invoices="invoices"
+              :upcoming_invoices="upcomingInvoices"
+              :subscriptions="[subscription]"
+              :account_id="subscription.account_id"
+              :payment_method="paymentMethod"
+            />
+          </div>
+          <div v-else>
+            <p>No Invoices Found</p>
+          </div>
+        </template>
       </div>
       <div v-else>
         <div class="full-page-cta">
@@ -144,7 +157,7 @@
 </template>
 
 <script>
-import { ref, computed, watchEffect } from "vue"
+import { ref, computed, watchEffect, onMounted } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { useSubscriptionStore } from "../stores/subscription"
 import { useCheckoutStore } from "../stores/checkout"
@@ -185,6 +198,8 @@ export default {
     //computed
     const accountRole = computed(() => authStore.currentAccountRole)
     const isEmbedded = computed(() => themeStore.isEmbedded)
+    const isShopifyPlatform = computed(() => window.WebLinguistDashboard?.platform === 'shopify')
+    const shopDomain = computed(() => window.WebLinguistDashboard?.shopDomain || '')
     const activeLicense = computed(() => licenseStore.state.active_license)
 
     const loading = computed(
@@ -228,31 +243,82 @@ export default {
       }
     })
 
-    const price = computed(() => {
-      let total = 0
+    /**
+     * Resolve the Shopify subscription interval from the synthetic stripe_price.
+     * e.g. "shopify_standard_monthly" → "month", "shopify_growth_yearly" → "year"
+     * Falls back to the subscription's interval field for Stripe subscriptions.
+     */
+    const resolvedInterval = computed(() => {
+      if (!subscription.value) return null
+      if (isShopifyPlatform.value && subscription.value.stripe_price) {
+        if (subscription.value.stripe_price.endsWith('_yearly')) return 'year'
+        if (subscription.value.stripe_price.endsWith('_monthly')) return 'month'
+      }
+      return subscription.value.interval || null
+    })
 
+    /**
+     * Resolve the subscription price.
+     * For Shopify subscriptions, the items don't carry a price amount (the backend can't
+     * retrieve Stripe prices for synthetic IDs), so we look up the matching checkout product
+     * using the shopifyPriceToStripeProductMap and match the interval.
+     */
+    const price = computed(() => {
+      if (!subscription.value) return 0
+
+      // For Shopify, resolve price from checkout products
+      if (isShopifyPlatform.value && subscription.value.stripe_price) {
+        const productName = checkoutStore.shopifyPriceToStripeProductMap[subscription.value.stripe_price]
+        if (productName) {
+          const product = checkoutStore.state.checkout_products.find(p => p.name === productName)
+          if (product && product.prices) {
+            const interval = resolvedInterval.value
+            const matchingPrice = product.prices.find(
+              p => p.recurring && p.recurring.interval === interval
+            )
+            if (matchingPrice) return matchingPrice.unit_amount
+          }
+        }
+      }
+
+      // Default: sum from subscription items (Stripe subscriptions)
+      let total = 0
       if (subscription.value.items) {
         subscription.value.items.forEach((item) => {
           total += parseFloat(item.price).toFixed(2)
         })
       }
-
       return total
     })
 
     const productFeatures = computed(() => {
-      return checkoutStore.state.checkout_products_features[
-        subscription.value.type
-      ]
+      // Resolve product name using Shopify price map when applicable
+      let type = subscription.value.type
+      if (window.WebLinguistDashboard?.platform === 'shopify' && subscription.value.stripe_price) {
+        const mappedName = checkoutStore.shopifyPriceToStripeProductMap[subscription.value.stripe_price]
+        if (mappedName) {
+          type = mappedName
+        }
+      } else if (type === 'Standard') {
+        type = 'Starter'
+      }
+      return checkoutStore.state.checkout_products_features[type]
     })
 
     // Check if user can downgrade (either to lower paid tier OR to free if they're a free_signup user)
     const canDowngrade = computed(() => {
       if (!subscription.value) return false
-      const planType = subscription.value.type?.toLowerCase()
+      // Resolve plan type for Shopify using the price map
+      let planType = subscription.value.type?.toLowerCase()
+      if (window.WebLinguistDashboard?.platform === 'shopify' && subscription.value.stripe_price) {
+        const mappedName = checkoutStore.shopifyPriceToStripeProductMap[subscription.value.stripe_price]
+        if (mappedName) {
+          planType = mappedName.toLowerCase()
+        }
+      }
       // Users on Growth or Pro can always downgrade to a lower paid tier
       if (planType === 'growth' || planType === 'pro') return true
-      // Starter users can only downgrade if they're free_signup users (can go to Free tier)
+      // Starter/Standard users can only downgrade if they're free_signup users (can go to Free tier)
       if (planType === 'starter' && authStore.isFreeUser) return true
       return false
     })
@@ -264,6 +330,13 @@ export default {
     const pushToCheckoutDowngrade = () => {
       router.push({ path: `/checkout/downgrade/${subscription.value.id}` })
     }
+
+    // Load checkout products for Shopify price resolution
+    onMounted(() => {
+      if (isShopifyPlatform.value && checkoutStore.state.checkout_products.length === 0) {
+        checkoutStore.getCheckoutProducts()
+      }
+    })
 
     //watchers
     watchEffect(async () => {
@@ -381,12 +454,15 @@ export default {
 
     return {
       accountRole,
+      isShopifyPlatform,
+      shopDomain,
       loading,
       loadingPaymentMethod,
       subscriptions,
       subscriptionsForSwitcher,
       subscription,
       price,
+      resolvedInterval,
       productFeatures,
       canDowngrade,
       invoices,
@@ -430,6 +506,25 @@ export default {
 .plan-features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+}
+
+.shopify-billing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.shopify-billing-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.shopify-billing-link {
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Mobile Responsiveness */

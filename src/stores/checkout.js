@@ -5,6 +5,33 @@ import api from "../utils/api"
 import { useAuthStore } from "./auth"
 
 export const useCheckoutStore = defineStore("checkout", () => {
+  /**
+   * Shopify Price → Stripe Product Name Map
+   *
+   * Shopify subscriptions store synthetic price identifiers in the `stripe_price` column
+   * (e.g., "shopify_standard_monthly") instead of real Stripe price IDs (e.g., "price_xxx").
+   * This map translates those synthetic Shopify prices to the corresponding Stripe product
+   * name so we can correctly identify the user's current plan when filtering checkout products
+   * during an upgrade or downgrade flow.
+   *
+   * Without this map, filterCurrentProductFromCheckout() in CheckoutView.vue cannot match
+   * a Shopify user's current subscription to the correct checkout product, causing the
+   * upgrade/downgrade product list to show up empty.
+   *
+   * Keys:   Shopify synthetic stripe_price values (from the subscriptions table)
+   * Values: Stripe product names (matching checkout_products_features keys / checkout product names)
+   *
+   * Note: Shopify uses "Standard" as the plan name, but Stripe uses "Starter" as the product name.
+   */
+  const shopifyPriceToStripeProductMap = {
+    shopify_standard_monthly: "Starter",
+    shopify_standard_yearly: "Starter",
+    shopify_growth_monthly: "Growth",
+    shopify_growth_yearly: "Growth",
+    shopify_pro_monthly: "Pro",
+    shopify_pro_yearly: "Pro",
+  }
+
   // State
   const state = ref({
     checkout_products: [],
@@ -276,6 +303,80 @@ export const useCheckoutStore = defineStore("checkout", () => {
       })
   }
 
+  /**
+   * Handle Shopify billing checkout (new subscription, upgrade, or downgrade).
+   * Returns the API response with confirmationUrl for Shopify approval page redirect.
+   */
+  async function handleShopifyCheckout(payload) {
+    setLoading("checkout", true)
+    try {
+      const sessionToken = await window.shopify.idToken()
+      const response = await api.post(`${config.apiBaseUrl}shopify/billing/subscribe`, {
+        plan: payload.plan_name,
+        interval: payload.interval,
+      }, {
+        headers: {
+          'X-Shopify-Session-Token': sessionToken,
+          'X-Shop-Domain': window.WebLinguistDashboard.shopDomain,
+        },
+      })
+      setLoading("checkout", false)
+      return response
+    } catch (error) {
+      setLoading("checkout", false)
+      throw error
+    }
+  }
+
+  /**
+   * Activate a Shopify subscription after merchant returns from approval page.
+   */
+  async function activateShopifySubscription() {
+    const sessionToken = await window.shopify.idToken()
+    return api.post(`${config.apiBaseUrl}shopify/billing/activate`, {}, {
+      headers: {
+        'X-Shopify-Session-Token': sessionToken,
+        'X-Shop-Domain': window.WebLinguistDashboard.shopDomain,
+      },
+    })
+  }
+
+  /**
+   * Cancel a Shopify subscription (optionally downgrade to free).
+   */
+  async function cancelShopifySubscription(payload) {
+    setLoading("checkout", true)
+    try {
+      const sessionToken = await window.shopify.idToken()
+      const response = await api.post(`${config.apiBaseUrl}shopify/billing/cancel`, {
+        downgrade_to_free: payload.downgrade_to_free || false,
+      }, {
+        headers: {
+          'X-Shopify-Session-Token': sessionToken,
+          'X-Shop-Domain': window.WebLinguistDashboard.shopDomain,
+        },
+      })
+      setLoading("checkout", false)
+      return response
+    } catch (error) {
+      setLoading("checkout", false)
+      throw error
+    }
+  }
+
+  /**
+   * Get current Shopify billing status.
+   */
+  async function getShopifyBillingStatus() {
+    const sessionToken = await window.shopify.idToken()
+    return api.get(`${config.apiBaseUrl}shopify/billing/status`, {
+      headers: {
+        'X-Shopify-Session-Token': sessionToken,
+        'X-Shop-Domain': window.WebLinguistDashboard.shopDomain,
+      },
+    })
+  }
+
   function handleCheckout(payload) {
     return new Promise((resolve, reject) => {
       setLoading("checkout", true)
@@ -369,6 +470,7 @@ export const useCheckoutStore = defineStore("checkout", () => {
 
   return {
     state,
+    shopifyPriceToStripeProductMap,
     getCheckoutProducts,
     createSetupIntent,
     validateCouponCode,
@@ -376,6 +478,10 @@ export const useCheckoutStore = defineStore("checkout", () => {
     handleCheckout,
     handleUpdateSubscription,
     handleCreateFreeLicense,
+    handleShopifyCheckout,
+    activateShopifySubscription,
+    cancelShopifySubscription,
+    getShopifyBillingStatus,
     setCouponDiscount,
     setCoupon,
     setCheckoutDrawerOpen,

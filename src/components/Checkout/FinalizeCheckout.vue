@@ -146,6 +146,19 @@
                 unlock more features.
               </p>
             </div>
+            <!-- Shopify paid tier - no payment method needed -->
+            <div
+              v-else-if="isShopifyPlatform"
+              class="free-tier-info"
+              style="padding-top: 10px"
+            >
+              <p style="font-weight: bold; color: var(--primary-color)">
+                Billing via Shopify
+              </p>
+              <p style="font-size: 14px; color: var(--text-secondary); margin: 0.5rem 0;">
+                Payment will be processed through your Shopify account.
+              </p>
+            </div>
             <!-- Paid tier - payment method section -->
             <div v-else class="payment">
               <div
@@ -354,7 +367,7 @@
             <div
               :class="[
                 'coupon',
-                { 'hide-coupon-box': !initial_onboard_setup || isFreeTier },
+                { 'hide-coupon-box': !initial_onboard_setup || isFreeTier || isShopifyPlatform },
               ]"
             >
               <label for="coupon_code">Coupon Code</label>
@@ -409,6 +422,18 @@
                   <span v-else> Activate My Translation </span>
                 </span>
                 <span v-else> Loading... </span>
+              </button>
+              <!-- Shopify paid checkout - no payment method needed -->
+              <button
+                class="btn btn-primary btn-highlight"
+                v-else-if="isShopifyPlatform"
+                @click="current_subscription ? handleUpdate() : handleCheckout()"
+              >
+                <span v-if="!loading">
+                  <span v-if="current_subscription">Confirm Changes</span>
+                  <span v-else>Subscribe via Shopify</span>
+                </span>
+                <span v-else>Loading...</span>
               </button>
               <!-- Paid checkout with existing payment method -->
               <button
@@ -576,6 +601,9 @@ export default {
     const router = useRouter()
 
     const isEmbedded = computed(() => themeStore.isEmbedded)
+    const isShopifyPlatform = computed(() =>
+      window.WebLinguistDashboard?.platform === 'shopify'
+    )
 
     //computed
     const loading = computed(() => {
@@ -799,7 +827,32 @@ export default {
       addonPrices.value = addonPrices
     }
 
+    async function handleShopifyBillingCheckout() {
+      try {
+        const res = await checkoutStore.handleShopifyCheckout({
+          plan_name: props.product.name === 'Starter' ? 'Standard' : props.product.name,
+          interval: props.price.recurring?.interval === 'year' ? 'yearly' : 'monthly',
+        })
+
+        if (res.data.success && res.data.confirmationUrl) {
+          // Use App Bridge to redirect parent frame to Shopify approval page
+          window.open(res.data.confirmationUrl, '_top')
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Billing Error",
+          text: error?.response?.data?.error || "Failed to start Shopify billing. Please try again.",
+        })
+      }
+    }
+
     function handleCheckout() {
+      if (isShopifyPlatform.value) {
+        handleShopifyBillingCheckout()
+        return
+      }
+
       buildAddonPricesArray()
 
       checkoutStore
@@ -1037,6 +1090,11 @@ export default {
     }
 
     function handleUpdate() {
+      if (isShopifyPlatform.value) {
+        handleShopifyBillingCheckout()
+        return
+      }
+
       buildAddonPricesArray()
 
       checkoutStore
@@ -1121,6 +1179,36 @@ export default {
     }
 
     function downgradeToFree() {
+      if (isShopifyPlatform.value) {
+        checkoutStore
+          .cancelShopifySubscription({ downgrade_to_free: true })
+          .then((res) => {
+            if (res && res.data && res.data.success) {
+              subscriptionStore.getSubscriptions({
+                account_id: authStore.currentAccountId,
+              })
+              licenseStore.getLicenses()
+              router.push({ path: "/success-confirmation/downgrade-to-free" })
+            } else {
+              Swal.fire({
+                title: "Error",
+                text: res?.data?.error || "Something went wrong. Please try again",
+                icon: "error",
+                confirmButtonText: "Ok",
+              })
+            }
+          })
+          .catch((err) => {
+            Swal.fire({
+              title: "Error",
+              text: err?.response?.data?.error || "Something went wrong. Please try again",
+              icon: "error",
+              confirmButtonText: "Ok",
+            })
+          })
+        return
+      }
+
       subscriptionStore
         .downgradeToFree(
           {
@@ -1253,9 +1341,11 @@ export default {
       handleFreeCheckout,
       handleUpdate,
       isFreeTier,
+      isShopifyPlatform,
       closeDialog,
       isEmbedded,
       downgradeToFree,
+      handleShopifyBillingCheckout,
       //components
       SelectionPreview,
       ProductPreview,

@@ -30,7 +30,22 @@
 
       <div v-if="subscriptions && subscriptions.length > 0">
         <div class="subscriptions-content-top">
-          <div class="section-container">
+          <!-- Shopify billing info -->
+          <div v-if="isShopifyPlatform" class="section-container">
+            <div class="shopify-billing-info">
+              <p v-if="shopifyBillingStatus" class="shopify-plan-info">
+                <strong>Current Plan:</strong> {{ shopifyBillingStatus.plan_name || 'Free' }}
+                <span v-if="shopifyBillingStatus.status && shopifyBillingStatus.status !== 'free'" class="shopify-status-badge" :class="'status-' + shopifyBillingStatus.status">
+                  {{ shopifyBillingStatus.status }}
+                </span>
+              </p>
+              <p style="font-size: 14px; color: var(--text-secondary);">
+                Billing is managed through your Shopify account.
+              </p>
+            </div>
+          </div>
+          <!-- Stripe payment methods (hidden for Shopify) -->
+          <div v-else class="section-container">
             <div v-if="!creatingNewMethod" class="payment-methods-wrapper">
               <PaymentMethods label="Default Payment Method" />
               <button
@@ -82,7 +97,7 @@
               class="btn btn-primary"
               @click="goToCheckoutPage"
             >
-              Create a Subscription
+              {{ isShopifyPlatform ? 'Change Plan' : 'Create a Subscription' }}
               <Plus
                 size="20"
                 style="
@@ -95,16 +110,25 @@
             </button>
           </div>
         </div>
-        <!-- Invoices -->
-        <div v-if="invoices && invoices.length > 0">
+        <!-- Invoices (hidden for Shopify - managed in Shopify admin) -->
+        <div v-if="!isShopifyPlatform && invoices && invoices.length > 0">
           <Invoices
             :invoices="invoices"
             :upcoming_invoices="upcomingInvoices"
             :subscriptions="subscriptions"
           />
         </div>
-        <div v-else>
+        <div v-else-if="!isShopifyPlatform">
           <p>No invoices found.</p>
+        </div>
+        <div v-if="isShopifyPlatform" class="shopify-manage-billing">
+          <a
+            :href="'https://' + shopDomain + '/admin/settings/billing'"
+            target="_top"
+            class="btn btn-outline"
+          >
+            Manage Billing in Shopify Admin
+          </a>
         </div>
       </div>
       <div v-else>
@@ -121,9 +145,10 @@
 </template>
 
 <script>
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { useSubscriptionStore } from "../stores/subscription"
+import { useCheckoutStore } from "../stores/checkout"
 import { useThemeStore } from "../stores/theme"
 import { useLicenseStore } from "../stores/license"
 import Invoices from "../components/Subscriptions/Invoices.vue"
@@ -148,8 +173,12 @@ export default {
     const router = useRouter()
     const authStore = useAuthStore()
     const subscriptionStore = useSubscriptionStore()
+    const checkoutStore = useCheckoutStore()
     const themeStore = useThemeStore()
     const licenseStore = useLicenseStore()
+
+    const shopifyBillingStatus = ref(null)
+    const shopDomain = computed(() => window.WebLinguistDashboard?.shopDomain || '')
 
     const isEmbedded = computed(() => {
       return themeStore.isEmbedded
@@ -159,9 +188,18 @@ export default {
       return licenseStore.state.value?.licenses
     })
 
+    const isShopifyPlatform = computed(() =>
+      window.WebLinguistDashboard?.platform === 'shopify'
+    )
+
     const showPurchaseBtn = computed(() => {
       // Show the button if the app is not embedded.
       if (!isEmbedded.value) {
+        return true;
+      }
+
+      // Show purchase button for Shopify (billing goes through Shopify Billing API)
+      if (isShopifyPlatform.value) {
         return true;
       }
 
@@ -185,6 +223,20 @@ export default {
       () => subscriptionStore.state.upcoming_invoices
     )
 
+    // Fetch Shopify billing status on mount
+    onMounted(async () => {
+      if (isShopifyPlatform.value) {
+        try {
+          const res = await checkoutStore.getShopifyBillingStatus()
+          if (res.data) {
+            shopifyBillingStatus.value = res.data
+          }
+        } catch (e) {
+          console.error('Failed to fetch Shopify billing status:', e)
+        }
+      }
+    })
+
     //methods
     const goToSubscriptionDetail = (subscriptionId) => {
       router.push({ path: `/subscriptions/${subscriptionId}` })
@@ -196,6 +248,9 @@ export default {
 
     return {
       showPurchaseBtn,
+      isShopifyPlatform,
+      shopifyBillingStatus,
+      shopDomain,
       accountRole,
       creatingNewMethod,
       subscriptions,
@@ -273,6 +328,46 @@ export default {
   justify-content: flex-end;
   align-items: flex-start;
   margin-top: 40px;
+}
+
+.shopify-billing-info {
+  text-align: left;
+  padding: 1rem 0;
+}
+
+.shopify-plan-info {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.shopify-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.shopify-status-badge.status-active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.shopify-status-badge.status-past_due {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.shopify-status-badge.status-canceled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.shopify-manage-billing {
+  margin-top: 2rem;
+  text-align: center;
 }
 
 /* Mobile Responsiveness */
