@@ -13,9 +13,9 @@
 
     <!-- Header -->
     <div class="sitemap-header">
-      <h3 class="section-title">Sitemap Manager</h3>
+      <h3 class="section-title">{{ $t('Sitemap Manager') }}</h3>
       <p class="sitemap-description">
-        Manage your sitemap URLs, translated slugs, and download sitemaps in HTML or XML format.
+        {{ $t('Manage your sitemap URLs, translated slugs, and download sitemaps in HTML or XML format.') }}
       </p>
     </div>
 
@@ -23,15 +23,15 @@
     <div class="sitemap-status-bar">
       <div class="status-info">
         <span v-if="sitemapGeneratedAt" class="last-built">
-          Last built: {{ formatDateTime(sitemapGeneratedAt) }}
+          {{ $t('Last built:') }} {{ formatDateTime(sitemapGeneratedAt) }}
         </span>
         <span v-if="regenerationStatus?.status === 'regenerating'" class="status-badge regenerating">
           <Refresh class="status-icon spinning" />
-          Regenerating...
+          {{ $t('Regenerating...') }}
         </span>
         <span v-else-if="regenerationStatus?.status === 'pending'" class="status-badge pending">
           <ClockOutline class="status-icon" />
-          Pending ({{ regenerationStatus.regenerate_in_seconds }}s)
+          {{ $t('Pending') }} ({{ regenerationStatus.regenerate_in_seconds }}s)
         </span>
       </div>
       <button
@@ -40,7 +40,7 @@
         :disabled="regenerating || regenerationStatus?.status === 'regenerating'"
       >
         <Refresh class="btn-icon" :class="{ spinning: regenerating }" />
-        <span>Regenerate Now</span>
+        <span>{{ $t('Regenerate Now') }}</span>
       </button>
     </div>
 
@@ -57,10 +57,10 @@
             />
             <span class="slider"></span>
           </label>
-          <span class="toggle-text">Use Translated URL Slugs</span>
+          <span class="toggle-text">{{ $t('Use Translated URL Slugs') }}</span>
         </div>
         <p class="settings-help">
-          <strong>Translated URL slugs</strong> provide SEO-friendly URLs for each language
+          <strong>{{ $t('Translated URL slugs') }}</strong> {{ $t('provide SEO-friendly URLs for each language') }}
           (e.g., <code>/contact</code> → <code>/fr/contactez</code>).
         </p>
       </div>
@@ -71,7 +71,7 @@
       <div class="overview-card">
         <div class="card-header">
           <div class="header-with-subtitle">
-            <h2>Manage Pages</h2>
+            <h2>{{ $t('Manage Pages') }}</h2>
             <span class="domain-subtitle">{{ licenseDomain }}</span>
           </div>
           <button
@@ -79,35 +79,35 @@
             class="btn btn-primary btn-small"
           >
             <Plus class="btn-icon" />
-            <span>Add Page</span>
+            <span>{{ $t('Add Page') }}</span>
           </button>
         </div>
 
         <!-- Filter Bar -->
         <div class="filter-bar">
           <div class="sitemap-filter-group">
-            <div class="filter-label">Filter:</div>
+            <div class="filter-label">{{ $t('Filter:') }}</div>
             <div class="filter-buttons">
               <button
                 class="btn btn-outline btn-small"
                 :class="{ active: pageFilter === 'all' }"
                 @click="pageFilter = 'all'"
               >
-                All Pages
+                {{ $t('All Pages') }}
               </button>
               <button
                 class="btn btn-outline btn-small"
                 :class="{ active: pageFilter === 'excluded' }"
                 @click="pageFilter = 'excluded'"
               >
-                Excluded
+                {{ $t('Excluded') }}
               </button>
               <button
                 class="btn btn-outline btn-small"
                 :class="{ active: pageFilter === 'manual' }"
                 @click="pageFilter = 'manual'"
               >
-                Manual
+                {{ $t('Manual') }}
               </button>
             </div>
           </div>
@@ -119,21 +119,21 @@
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Search URLs..."
+              :placeholder="$t('Search URLs...')"
               class="search-input"
             />
           </div>
           <div class="filter-stats">
-            Showing {{ paginatedPages.length }} of {{ totalFilteredPages }} pages
+            {{ $t('Showing') }} {{ paginatedPages.length }} {{ $t('of') }} {{ totalFilteredPages }} {{ $t('pages') }}
           </div>
         </div>
 
         <div class="card-body scrollable">
           <!-- Add URL Form -->
           <div v-if="showAddForm" class="add-form">
-            <h3>Add New Page</h3>
+            <h3>{{ $t('Add New Page') }}</h3>
             <div class="form-group">
-              <label>URL Path</label>
+              <label>{{ $t('URL Path') }}</label>
               <input
                 type="text"
                 v-model="newPageForm.url"
@@ -142,29 +142,29 @@
               />
             </div>
             <div class="form-group">
-              <label>Page Title (optional)</label>
+              <label>{{ $t('Page Title (optional)') }}</label>
               <input
                 type="text"
                 v-model="newPageForm.title"
-                placeholder="About Us"
+                :placeholder="$t('About Us')"
                 class="input"
               />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Change Frequency</label>
+                <label>{{ $t('Change Frequency') }}</label>
                 <select v-model="newPageForm.changefreq" class="input">
-                  <option value="always">Always</option>
-                  <option value="hourly">Hourly</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="never">Never</option>
+                  <option value="always">{{ $t('Always') }}</option>
+                  <option value="hourly">{{ $t('Hourly') }}</option>
+                  <option value="daily">{{ $t('Daily') }}</option>
+                  <option value="weekly">{{ $t('Weekly') }}</option>
+                  <option value="monthly">{{ $t('Monthly') }}</option>
+                  <option value="yearly">{{ $t('Yearly') }}</option>
+                  <option value="never">{{ $t('Never') }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Priority ({{ newPageForm.priority }})</label>
+                <label>{{ $t('Priority') }} ({{ newPageForm.priority }})</label>
                 <input
                   type="range"
                   min="0"
@@ -177,10 +177,10 @@
             </div>
             <div class="button-row">
               <button @click="handleAddPage" class="btn btn-primary" :disabled="addingPage">
-                {{ addingPage ? 'Adding...' : 'Add Page' }}
+                {{ addingPage ? $t('Adding...') : $t('Add Page') }}
               </button>
               <button @click="showAddForm = false" class="btn btn-secondary">
-                Cancel
+                {{ $t('Cancel') }}
               </button>
             </div>
           </div>
@@ -188,12 +188,12 @@
           <!-- Loading State -->
           <div v-if="loading" class="loading-state">
             <div class="spinner"></div>
-            <p>Loading sitemap data...</p>
+            <p>{{ $t('Loading sitemap data...') }}</p>
           </div>
 
           <!-- Empty State -->
           <div v-else-if="pages.length === 0 && !loading" class="empty-state">
-            <p>No pages found. Start a crawl or add pages manually.</p>
+            <p>{{ $t('No pages found. Start a crawl or add pages manually.') }}</p>
           </div>
 
           <!-- Page List -->
@@ -214,7 +214,7 @@
                   <div class="page-url">
                     <code class="url-text">{{ getPathFromUrl(page.url) }}</code>
                     <span v-if="page.source === 'manual'" class="source-badge manual">
-                      manual
+                      {{ $t('manual') }}
                     </span>
                   </div>
                   <div class="action-buttons">
@@ -222,7 +222,7 @@
                       v-if="dirtyPages[page.hash]"
                       @click="savePage(page)"
                       class="icon-btn icon-btn-save"
-                      title="Save changes"
+                      :title="$t('Save changes')"
                       :disabled="savingPages[page.hash]"
                     >
                       <ContentSave v-if="!savingPages[page.hash]" />
@@ -253,7 +253,7 @@
                       v-if="page.source === 'manual'"
                       @click="handleDeletePage(page)"
                       class="icon-btn icon-btn-danger"
-                      title="Delete page"
+                      :title="$t('Delete page')"
                     >
                       <Delete />
                     </button>
@@ -266,22 +266,22 @@
 
                 <div class="page-meta">
                   <span class="badge">{{ page.changefreq || 'weekly' }}</span>
-                  <span class="badge badge-primary">Priority: {{ page.priority || calculatePriority(page.url) }}</span>
+                  <span class="badge badge-primary">{{ $t('Priority:') }} {{ page.priority || calculatePriority(page.url) }}</span>
                   <span class="badge" v-if="page.lastmod">{{ formatDate(page.lastmod) }}</span>
                 </div>
 
                 <!-- Expanded URL Translations Editor (hidden when excluded) -->
                 <div v-if="expandedPages[page.hash] && !page.excluded" class="translations-expanded">
                   <div class="translations-header">
-                    <h4>URL Translations</h4>
+                    <h4>{{ $t('URL Translations') }}</h4>
                     <button
                       @click="generateAllSlugs(page)"
                       class="btn btn-small btn-outline"
                       :disabled="generatingAll[page.hash]"
-                      title="Generate translations for all languages using AI"
+                      :title="$t('Generate translations for all languages using AI')"
                     >
                       <Refresh class="btn-icon" :class="{ spinning: generatingAll[page.hash] }" />
-                      <span>Generate All</span>
+                      <span>{{ $t('Generate All') }}</span>
                     </button>
                   </div>
                   <div
@@ -304,7 +304,7 @@
                       @click="generateSlug(page, getLangCode(lang))"
                       class="icon-btn"
                       :disabled="generatingSlugs[`${page.hash}:${getLangCode(lang)}`]"
-                      title="Generate with AI"
+                      :title="$t('Generate with AI')"
                     >
                       <Refresh :class="{ spinning: generatingSlugs[`${page.hash}:${getLangCode(lang)}`] }" />
                     </button>
@@ -323,31 +323,31 @@
               :disabled="currentPage === 1"
               class="btn btn-secondary btn-small"
             >
-              First
+              {{ $t('First') }}
             </button>
             <button
               @click="currentPage--"
               :disabled="currentPage === 1"
               class="btn btn-secondary btn-small"
             >
-              Previous
+              {{ $t('Previous') }}
             </button>
             <span class="pagination-info">
-              Page {{ currentPage }} of {{ totalPages }}
+              {{ $t('Page') }} {{ currentPage }} {{ $t('of') }} {{ totalPages }}
             </span>
             <button
               @click="currentPage++"
               :disabled="currentPage === totalPages"
               class="btn btn-secondary btn-small"
             >
-              Next
+              {{ $t('Next') }}
             </button>
             <button
               @click="currentPage = totalPages"
               :disabled="currentPage === totalPages"
               class="btn btn-secondary btn-small"
             >
-              Last
+              {{ $t('Last') }}
             </button>
           </div>
         </div>
@@ -356,29 +356,29 @@
       <!-- Source Section -->
       <div class="overview-card">
         <div class="card-header">
-          <h2>Sitemap Source</h2>
+          <h2>{{ $t('Sitemap Source') }}</h2>
           <div class="format-buttons">
             <button
               @click="selectFormat('xml')"
               :class="['btn', 'btn-small', format === 'xml' ? 'btn-primary' : 'btn-outline']"
             >
               <Code class="btn-icon" />
-              <span>XML</span>
+              <span>{{ $t('XML') }}</span>
             </button>
             <button
               @click="selectFormat('html')"
               :class="['btn', 'btn-small', format === 'html' ? 'btn-primary' : 'btn-outline']"
             >
               <FileDocument class="btn-icon" />
-              <span>HTML</span>
+              <span>{{ $t('HTML') }}</span>
             </button>
           </div>
         </div>
 
         <div class="card-header format-header">
           <div class="sitemap-info">
-            <span class="info-badge">{{ sourcePageCount }} pages</span>
-            <span class="info-badge">{{ languages.length }} languages</span>
+            <span class="info-badge">{{ sourcePageCount }} {{ $t('pages') }}</span>
+            <span class="info-badge">{{ languages.length }} {{ $t('languages') }}</span>
             <!-- Language selector for HTML -->
             <select
               v-if="format === 'html' && languages.length > 0"
@@ -395,12 +395,12 @@
             <button @click="handleCopy" class="btn btn-small btn-outline" :disabled="sourceLoading || !sourceContent">
               <ContentCopy v-if="!copied" class="btn-icon" />
               <Check v-else class="btn-icon icon-success" />
-              <span>{{ copied ? "Copied!" : "Copy" }}</span>
+              <span>{{ copied ? $t("Copied!") : $t("Copy") }}</span>
             </button>
             <button @click="handleDownload" class="btn btn-small btn-primary" :disabled="sourceLoading || !sourceContent">
               <Download v-if="!downloaded" class="btn-icon" />
               <Check v-else class="btn-icon" />
-              <span>Download</span>
+              <span>{{ $t('Download') }}</span>
             </button>
           </div>
         </div>
@@ -408,8 +408,8 @@
         <!-- Source Area -->
         <div class="card-body">
           <div class="preview-header">
-            <h3>Source</h3>
-            <span class="line-count" v-if="!sourceLoading && sourceContent">{{ sourceLineCount }} lines</span>
+            <h3>{{ $t('Source') }}</h3>
+            <span class="line-count" v-if="!sourceLoading && sourceContent">{{ sourceLineCount }} {{ $t('lines') }}</span>
           </div>
 
           <div class="code-preview">
@@ -423,10 +423,10 @@
             </div>
             <div v-if="sourceLoading" class="code-loading">
               <div class="spinner"></div>
-              <span>Loading source...</span>
+              <span>{{ $t('Loading source...') }}</span>
             </div>
             <div v-else-if="sourceError" class="code-error">
-              <span>{{ sourceError }}</span>
+              <span>{{ $t(sourceError) }}</span>
             </div>
             <pre v-else class="code-content"><code :class="`language-${format}`" v-html="highlightedCode"></code></pre>
           </div>
@@ -434,20 +434,20 @@
 
         <!-- Sitemap Files from S3 -->
         <div v-if="sitemaps && Object.keys(sitemaps).length > 0" class="sitemap-files">
-          <h4>Generated Sitemap Files</h4>
+          <h4>{{ $t('Generated Sitemap Files') }}</h4>
           <div class="sitemap-links">
             <!-- Single XML Sitemap -->
             <div v-if="sitemaps._xml?.url" class="sitemap-lang-group">
               <span class="lang-label">XML:</span>
               <a :href="sitemaps._xml.url" target="_blank" class="sitemap-link">
-                sitemap.xml ({{ sitemaps._xml.page_count || 0 }} pages)
+                sitemap.xml ({{ sitemaps._xml.page_count || 0 }} {{ $t('pages') }})
               </a>
             </div>
             <!-- HTML Sitemaps per language -->
             <div v-for="(files, lang) in languageSitemaps" :key="lang" class="sitemap-lang-group">
               <span class="lang-label">{{ lang.toUpperCase() }}:</span>
               <a v-if="files.html?.url" :href="files.html.url" target="_blank" class="sitemap-link">
-                HTML ({{ files.html.page_count || 0 }} pages)
+                HTML ({{ files.html.page_count || 0 }} {{ $t('pages') }})
               </a>
             </div>
           </div>
@@ -1154,6 +1154,7 @@ async function fetchSourceContent() {
     }
 
     if (!url) {
+      // $t("Sitemap file not found. Try regenerating the sitemaps.")
       sourceError.value = "Sitemap file not found. Try regenerating the sitemaps."
       return
     }
@@ -1166,6 +1167,7 @@ async function fetchSourceContent() {
     sourceContent.value = await response.text()
   } catch (error) {
     console.error("Failed to fetch source content:", error)
+    // $t("Failed to load source content")
     sourceError.value = error.message || "Failed to load source content"
   } finally {
     sourceLoading.value = false

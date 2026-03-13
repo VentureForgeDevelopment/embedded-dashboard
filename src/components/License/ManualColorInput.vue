@@ -3,7 +3,7 @@
     <!-- Solid Color Input -->
     <div v-if="!isGradient" class="form-group">
       <label for="manual-color-input" class="form-label"
-        >Manual Color Entry</label
+        >{{ $t('Manual Color Entry') }}</label
       >
       <div class="input-with-swatch">
         <span class="color-swatch-container">
@@ -21,17 +21,17 @@
           v-model="inputValue"
           @blur="updateColor"
           @keyup.enter="updateColor"
-          placeholder="#Hex or rgba(...)"
+          :placeholder="$t('#Hex or rgba(...)')"
         />
         <small v-if="errorMessage" class="form-help error-message">{{
-          errorMessage
+          $t(errorMessage)
         }}</small>
       </div>
     </div>
 
     <!-- Gradient Stops Input -->
     <div v-else class="form-group">
-      <label class="form-label">Gradient Stops</label>
+      <label class="form-label">{{ $t('Gradient Stops') }}</label>
       <div
         v-for="(stop, index) in gradientStops"
         :key="index"
@@ -50,19 +50,19 @@
             v-model="stop.inputValue"
             @blur="updateGradientStop(index)"
             @keyup.enter="updateGradientStop(index)"
-            placeholder="#RRGGBB or rgba(...)"
+            :placeholder="$t('#RRGGBB or rgba(...)')"
           />
           <button
             @click="removeGradientStop(index)"
             v-if="gradientStops.length > 2"
             class="action-button remove-stop-btn"
-            title="Remove stop"
+            :title="$t('Remove stop')"
           >
             &times;
           </button>
         </div>
         <small v-if="stop.errorMessage" class="form-help error-message">{{
-          stop.errorMessage
+          $t(stop.errorMessage)
         }}</small>
       </div>
     </div>

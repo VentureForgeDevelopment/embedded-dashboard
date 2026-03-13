@@ -4,6 +4,7 @@ import { createRouterInstance } from "./router"
 import "./style.css"
 import App from "./App.vue"
 import axios from "axios"
+import I18nPlugin from "./lib/i18n/plugin.js"
 
 axios.defaults.withCredentials = true
 
@@ -20,6 +21,13 @@ function initializeApp() {
 
   app.use(createPinia())
   app.use(router)
+  app.use(I18nPlugin, {
+    licenseKey: import.meta.env.VITE_WL_APP_LICENSE_KEY,
+    cdnUrl: import.meta.env.VITE_WL_CDN_URL || 'https://weblinguist-cache.sfo3.digitaloceanspaces.com',
+    apiUrl: import.meta.env.VITE_WL_API_URL || 'https://api.weblinguist.ai',
+    sourceLanguage: 'en',
+    targetLanguages: ['fr', 'es', 'it', 'pt', 'ro']
+  })
 
   app.mount("#app")
 }

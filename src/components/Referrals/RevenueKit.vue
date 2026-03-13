@@ -1,15 +1,10 @@
 <template>
   <div class="revenue-kit-container">
-    <h3 class="section-subtitle">Revenue Kit</h3>
+    <h3 class="section-subtitle">{{ $t('Revenue Kit') }}</h3>
     <p class="section-description">
-      Website Translation Revenue Kit (for digital agencies)
-      <strong
-        >Everything you need to start selling multilingual websites as a
-        high-margin, recurring service — with zero dev time.</strong
-      >
-      Use the tools below to pitch clients, calculate pricing, close deals, and
-      launch fast. From cold emails to a live demo in under an hour — this kit
-      makes translation a revenue stream you can deploy today.
+      {{ $t('Website Translation Revenue Kit (for digital agencies)') }}
+      <strong>{{ $t('Everything you need to start selling multilingual websites as a high-margin, recurring service — with zero dev time.') }}</strong>
+      {{ $t('Use the tools below to pitch clients, calculate pricing, close deals, and launch fast. From cold emails to a live demo in under an hour — this kit makes translation a revenue stream you can deploy today.') }}
     </p>
 
     <div class="resource-container">
@@ -17,11 +12,11 @@
         <li v-for="resource in resources" :key="resource.id">
           <a v-if="resource.type === 'pdf'" href="#" @click.prevent="downloadFile(resource.file)">
             <DownloadOutline class="icon" />
-            {{ resource.name }}
+            {{ $t(resource.name) }}
           </a>
           <a v-else-if="resource.type === 'link'" :href="resource.url" target="_blank">
             <OpenInNew class="icon" />
-            {{ resource.name }}
+            {{ $t(resource.name) }}
           </a>
         </li>
       </ul>

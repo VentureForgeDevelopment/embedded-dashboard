@@ -8,18 +8,18 @@
         </svg>
       </div>
       <div class="alert-text">
-        <h4 v-if="scheduledChange.type === 'cancellation'">Subscription Ending</h4>
-        <h4 v-else>Plan Downgrade Scheduled</h4>
+        <h4 v-if="scheduledChange.type === 'cancellation'">{{ $t('Subscription Ending') }}</h4>
+        <h4 v-else>{{ $t('Plan Downgrade Scheduled') }}</h4>
         <p v-if="scheduledChange.type === 'cancellation'">
-          Your subscription will be cancelled on <strong>{{ formattedDate }}</strong>.
-          You'll continue to have full access until then, then your account will move to the free tier.
+          {{ $t('Your subscription will be cancelled on') }} <strong>{{ formattedDate }}</strong>.
+          {{ $t("You'll continue to have full access until then, then your account will move to the free tier.") }}
         </p>
         <p v-else>
-          Your plan will change to <strong>{{ scheduledChange.new_plan }}</strong> on <strong>{{ formattedDate }}</strong>.
-          You'll continue to have your current features until then.
+          {{ $t('Your plan will change to') }} <strong>{{ scheduledChange.new_plan }}</strong> {{ $t('on') }} <strong>{{ formattedDate }}</strong>.
+          {{ $t("You'll continue to have your current features until then.") }}
         </p>
         <span class="days-remaining" v-if="scheduledChange.days_remaining !== null">
-          {{ scheduledChange.days_remaining }} {{ scheduledChange.days_remaining === 1 ? 'day' : 'days' }} remaining
+          {{ scheduledChange.days_remaining }} {{ scheduledChange.days_remaining === 1 ? $t('day') : $t('days') }} {{ $t('remaining') }}
         </span>
       </div>
       <button
@@ -28,7 +28,7 @@
         :disabled="isLoading"
       >
         <span v-if="isLoading" class="btn-loading"></span>
-        <span v-else>Keep Subscription</span>
+        <span v-else>{{ $t('Keep Subscription') }}</span>
       </button>
     </div>
   </div>

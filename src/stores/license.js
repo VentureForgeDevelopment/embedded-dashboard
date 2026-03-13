@@ -63,10 +63,12 @@ export const useLicenseStore = defineStore("license", () => {
         data: "",
       },
     ],
+    usage: null,
     loading: {
       licenses: false,
       license_rules: false,
       dns: false,
+      usage: false,
     },
     dnsCheckData: {},
     isDetectingOrigin: false,
@@ -195,6 +197,47 @@ export const useLicenseStore = defineStore("license", () => {
         })
         .catch((err) => {
           setLoading("licenses", false)
+          reject(err)
+        })
+    })
+  }
+
+  /**
+   * Ensure licenses are loaded. Only fetches if state.licenses is null.
+   * Returns immediately if already loaded.
+   */
+  function ensureLicensesLoaded() {
+    if (state.value.licenses !== null) {
+      return Promise.resolve()
+    }
+    return getLicenses()
+  }
+
+  /**
+   * Fetch a single license by ID and upsert it into the store's licenses array.
+   * Returns the raw license data from the API.
+   */
+  function fetchLicenseById(licenseId) {
+    return new Promise((resolve, reject) => {
+      api
+        .get(`${appApiUrl.value}licenses/${licenseId}`, {
+          headers: {
+            "X-Account-ID": authStore.currentAccountId.toString(),
+          },
+        })
+        .then((res) => {
+          const licenseData = res.data.license
+          if (licenseData && Array.isArray(state.value.licenses)) {
+            const idx = state.value.licenses.findIndex(l => l.id === licenseData.id)
+            if (idx !== -1) {
+              state.value.licenses[idx] = { ...state.value.licenses[idx], ...licenseData }
+            } else {
+              state.value.licenses.push(licenseData)
+            }
+          }
+          resolve(res)
+        })
+        .catch((err) => {
           reject(err)
         })
     })
@@ -431,6 +474,14 @@ export const useLicenseStore = defineStore("license", () => {
         )
         .then((res) => {
           setLoading("licenses", false)
+          // Update the license in local state so changes persist across tab navigation
+          if (res.data?.data && Array.isArray(state.value.licenses)) {
+            const updated = res.data.data
+            const idx = state.value.licenses.findIndex(l => l.id === updated.id)
+            if (idx !== -1) {
+              state.value.licenses[idx] = updated
+            }
+          }
           resolve(res)
         })
         .catch((err) => {
@@ -528,10 +579,44 @@ export const useLicenseStore = defineStore("license", () => {
       const position = settings.position || {}
       const icon = settings.icon || {}
       const colors = settings.colors || {}
-      const localization = settings.localization || {}
+      const localization = settings.localization || settings.colors?.localization || {}
       const display = settings.display || {}
 
       const enrichedLanguages = await enrichLanguages(languages)
+
+      // Fetch phone code and currency code for the selected country (mirrors BuildToolbar.php logic)
+      const countryCode = localization.country || 'US'
+      let phoneCode = ''
+      let baseCurrency = 'USD'
+      let currencySymbol = '$'
+      try {
+        const countryResponse = await api.get(`${appApiUrl.value}languages/countries`)
+        if (countryResponse.data.success && Array.isArray(countryResponse.data.countries)) {
+          const country = countryResponse.data.countries.find(
+            c => c.code === countryCode
+          )
+          phoneCode = country?.phone_code || ''
+          baseCurrency = country?.currency_code || 'USD'
+          // Simple symbol lookup for dev mode
+          const symbolMap = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CNY: '¥', INR: '₹', BRL: 'R$', CAD: 'CA$', AUD: 'A$', CHF: 'CHF', MXN: 'MX$' }
+          currencySymbol = symbolMap[baseCurrency] || baseCurrency
+        }
+      } catch (e) {
+        console.warn('Failed to fetch phone code for country:', e)
+      }
+
+      // Fetch exchange rates for currency localization (mirrors BuildToolbar.php logic)
+      let exchangeRates = {}
+      if (localization.localize_currency) {
+        try {
+          const ratesResponse = await api.get(`${appApiUrl.value}currency/rates?base=${baseCurrency}`)
+          if (ratesResponse.data.success && ratesResponse.data.rates) {
+            exchangeRates = ratesResponse.data.rates
+          }
+        } catch (e) {
+          console.warn('Failed to fetch exchange rates:', e)
+        }
+      }
 
       const dnsCheckData = license.dns_check || {}
       const dnsInstallationEnabled =
@@ -713,10 +798,15 @@ export const useLicenseStore = defineStore("license", () => {
             localization: {
               'country': '${localization.country || "US"}',
               'default_language': '${localization.default_language || "en-US"}',
+              'default_voice': '${localization.default_voice || ""}',
               'localize_phone_numbers': ${
                 localization.localize_phone_numbers || false
               },
-              'localize_currency': ${localization.localize_currency || false}
+              'localize_currency': ${localization.localize_currency || false},
+              'phone_code': '${phoneCode}',
+              'base_currency': '${baseCurrency}',
+              'currency_symbol': '${currencySymbol}',
+              'exchange_rates': ${JSON.stringify(exchangeRates)}
             },
             dnsInstallationEnabled: ${dnsInstallationEnabled || false},
             enabled: ${settings.enabled ? "true" : "false"},
@@ -728,6 +818,7 @@ export const useLicenseStore = defineStore("license", () => {
                 : "false"
             },
             licenseType: '${license.type || "subscription"}',
+            analyticsEnabled: ${settings.analytics_enabled === true ? "true" : "false"},
             apiUrl: '${config.appApiUrl.replace(
               /\/$/,
               ""
@@ -900,6 +991,27 @@ export const useLicenseStore = defineStore("license", () => {
       })
   }
 
+  function getLicenseUsage({ license_id, days = 30 }) {
+    return new Promise((resolve, reject) => {
+      setLoading("usage", true)
+      api
+        .get(`${appApiUrl.value}licenses/${license_id}/usage?days=${days}`, {
+          headers: {
+            "X-Account-ID": authStore.currentAccountId.toString(),
+          },
+        })
+        .then((res) => {
+          state.value.usage = res.data.data || null
+          setLoading("usage", false)
+          resolve(res)
+        })
+        .catch((err) => {
+          setLoading("usage", false)
+          reject(err)
+        })
+    })
+  }
+
   async function performDnsChecks(licenseId) {
     setLoading("dns", true)
     try {
@@ -916,6 +1028,8 @@ export const useLicenseStore = defineStore("license", () => {
   return {
     state,
     getLicenses,
+    ensureLicensesLoaded,
+    fetchLicenseById,
     getLicenseRules,
     addLicenseRule,
     updateLicenseRule,
@@ -928,6 +1042,7 @@ export const useLicenseStore = defineStore("license", () => {
     checkLicenseOriginHealth,
     generateInstallationScript,
     enrichLanguages,
+    getLicenseUsage,
     performDnsChecks,
     startDnsConfiguration,
     stopDnsConfiguration,

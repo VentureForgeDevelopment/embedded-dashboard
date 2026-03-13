@@ -219,7 +219,7 @@ onMounted(() => {
 
 <template>
   <div class="profile-container padding max-1200">
-    <h2 class="page-title">Profile Settings</h2>
+    <h2 class="page-title">{{ $t('Profile Settings') }}</h2>
 
     <!-- Profile Information -->
     <div class="profile-card">
@@ -262,7 +262,7 @@ onMounted(() => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Google
+              {{ $t('Google') }}
             </button>
 
             <CheckCircleIcon
@@ -288,7 +288,7 @@ onMounted(() => {
                 <path fill="#7fba00" d="M11.4 23.4H.6V12.6h10.8v10.8z" />
                 <path fill="#ffb900" d="M23.4 23.4H12.6V12.6h10.8v10.8z" />
               </svg>
-              Microsoft
+              {{ $t('Microsoft') }}
             </button>
 
             <CheckCircleIcon
@@ -312,13 +312,13 @@ onMounted(() => {
       <!-- Personal Information -->
       <div class="settings-card">
         <div class="card-header">
-          <h3 class="card-title">Personal Information</h3>
+          <h3 class="card-title">{{ $t('Personal Information') }}</h3>
           <button
             v-if="!isEditing"
             @click="isEditing = true"
             class="btn btn-outline"
           >
-            Edit
+            {{ $t('Edit') }}
           </button>
           <div v-else class="edit-buttons">
             <button
@@ -327,14 +327,14 @@ onMounted(() => {
               class="btn btn-primary"
             >
               <span v-if="isUpdatingProfile" class="spinner"></span>
-              {{ isUpdatingProfile ? "Saving..." : "Save" }}
+              {{ isUpdatingProfile ? $t('Saving...') : $t('Save') }}
             </button>
             <button
               @click="cancelEdit"
               :disabled="isUpdatingProfile"
               class="btn btn-secondary"
             >
-              Cancel
+              {{ $t('Cancel') }}
             </button>
           </div>
         </div>
@@ -350,7 +350,7 @@ onMounted(() => {
         <form @submit.prevent="saveProfile" v-if="isEditing">
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Full Name</label>
+              <label class="form-label">{{ $t('Full Name') }}</label>
               <input
                 v-model="profileForm.name"
                 class="form-input"
@@ -359,7 +359,7 @@ onMounted(() => {
               />
             </div>
             <div class="form-group">
-              <label class="form-label">Email Address</label>
+              <label class="form-label">{{ $t('Email Address') }}</label>
               <input
                 v-model="profileForm.email"
                 class="form-input"
@@ -368,12 +368,12 @@ onMounted(() => {
               />
             </div>
             <div class="form-group">
-              <label class="form-label">PayPal Email</label>
+              <label class="form-label">{{ $t('PayPal Email') }}</label>
               <input
                 v-model="profileForm.paypal_email"
                 class="form-input"
                 type="email"
-                placeholder="Enter your PayPal email"
+                :placeholder="$t('Enter your PayPal email')"
               />
             </div>
           </div>
@@ -381,7 +381,7 @@ onMounted(() => {
 
         <div v-else class="form-grid">
           <div class="form-group">
-            <label class="form-label">Full Name</label>
+            <label class="form-label">{{ $t('Full Name') }}</label>
             <input
               v-model="profileForm.name"
               disabled
@@ -390,7 +390,7 @@ onMounted(() => {
             />
           </div>
           <div class="form-group">
-            <label class="form-label">Email Address</label>
+            <label class="form-label">{{ $t('Email Address') }}</label>
             <input
               v-model="profileForm.email"
               disabled
@@ -399,7 +399,7 @@ onMounted(() => {
             />
           </div>
           <div class="form-group">
-            <label class="form-label">PayPal Email</label>
+            <label class="form-label">{{ $t('PayPal Email') }}</label>
             <input
               v-model="profileForm.paypal_email"
               disabled
@@ -414,7 +414,7 @@ onMounted(() => {
       <!-- Security Settings -->
       <div class="settings-card">
         <div class="card-header">
-          <h3 class="card-title">Security</h3>
+          <h3 class="card-title">{{ $t('Security') }}</h3>
         </div>
 
         <!-- Password Success/Error Messages -->
@@ -428,33 +428,33 @@ onMounted(() => {
         <form @submit.prevent="updatePassword">
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Current Password</label>
+              <label class="form-label">{{ $t('Current Password') }}</label>
               <input
                 v-model="passwordForm.current_password"
                 class="form-input"
                 type="password"
-                placeholder="Enter current password"
+                :placeholder="$t('Enter current password')"
                 required
               />
             </div>
             <div class="form-group">
-              <label class="form-label">New Password</label>
+              <label class="form-label">{{ $t('New Password') }}</label>
               <input
                 v-model="passwordForm.new_password"
                 class="form-input"
                 type="password"
-                placeholder="Enter new password (min 8 characters)"
+                :placeholder="$t('Enter new password (min 8 characters)')"
                 minlength="8"
                 required
               />
             </div>
             <div class="form-group">
-              <label class="form-label">Confirm New Password</label>
+              <label class="form-label">{{ $t('Confirm New Password') }}</label>
               <input
                 v-model="passwordForm.new_password_confirmation"
                 class="form-input"
                 type="password"
-                placeholder="Confirm new password"
+                :placeholder="$t('Confirm new password')"
                 minlength="8"
                 required
               />
@@ -468,7 +468,7 @@ onMounted(() => {
               class="btn btn-primary"
             >
               <span v-if="isUpdatingPassword" class="spinner"></span>
-              {{ isUpdatingPassword ? "Updating..." : "Update Password" }}
+              {{ isUpdatingPassword ? $t('Updating...') : $t('Update Password') }}
             </button>
           </div>
         </form>
@@ -477,7 +477,7 @@ onMounted(() => {
       <!-- Default Account Settings -->
       <div class="settings-card" v-if="userAccounts.length > 1">
         <div class="card-header">
-          <h3 class="card-title">Default Account</h3>
+          <h3 class="card-title">{{ $t('Default Account') }}</h3>
         </div>
 
         <!-- Default Account Success/Error Messages -->
@@ -489,9 +489,9 @@ onMounted(() => {
         </div>
 
         <div class="form-group">
-          <label class="form-label">Select your default account</label>
+          <label class="form-label">{{ $t('Select your default account') }}</label>
           <p class="form-help">
-            This account will be selected when you log in.
+            {{ $t('This account will be selected when you log in.') }}
           </p>
           <select
             v-model="defaultAccountId"
@@ -499,7 +499,7 @@ onMounted(() => {
             :disabled="isUpdatingDefaultAccount"
             class="form-select"
           >
-            <option value="" disabled>Choose default account</option>
+            <option value="" disabled>{{ $t('Choose default account') }}</option>
             <option
               v-for="account in userAccounts"
               :key="account.id"
@@ -511,7 +511,7 @@ onMounted(() => {
 
           <div v-if="isUpdatingDefaultAccount" class="updating-indicator">
             <span class="spinner"></span>
-            Updating default account...
+            {{ $t('Updating default account...') }}
           </div>
         </div>
       </div>

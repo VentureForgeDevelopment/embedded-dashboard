@@ -5,13 +5,13 @@
       <div class="stat-icon-wrapper">
         <ClockTimeThreeOutline
           class="stat-icon"
-          :size="24"
+          :size=24
           fillColor="#4a69bb"
         />
       </div>
       <div class="stat-content">
         <span class="stat-value">{{ stats.pending_conversions }}</span>
-        <span class="stat-label">Pending</span>
+        <span class="stat-label">{{ $t('Pending') }}</span>
       </div>
     </div>
 
@@ -20,24 +20,24 @@
       <div class="stat-icon-wrapper">
         <CheckboxMarkedCircleOutline
           class="stat-icon"
-          :size="24"
+          :size=24
           fillColor="#4a69bb"
         />
       </div>
       <div class="stat-content">
         <span class="stat-value">{{ stats.overall_conversions }}</span>
-        <span class="stat-label">Conversions</span>
+        <span class="stat-label">{{ $t('Conversions') }}</span>
       </div>
     </div>
 
     <!-- Conversion Rate -->
     <div class="stat-card">
       <div class="stat-icon-wrapper">
-        <TrendingUp class="stat-icon" :size="24" fillColor="#4a69bb" />
+        <TrendingUp class="stat-icon" :size=24 fillColor="#4a69bb" />
       </div>
       <div class="stat-content">
         <span class="stat-value">{{ stats.conversion_rate }}%</span>
-        <span class="stat-label">Conversion Rate</span>
+        <span class="stat-label">{{ $t('Conversion Rate') }}</span>
       </div>
     </div>
   </div>

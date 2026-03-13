@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { computed } from "vue"
+import { computed, inject } from "vue"
 import { useLicenseStore } from "../../stores/license"
 import MockToolbar from "./MockToolbar.vue"
 import MockEmbeddedToolbar from "./MockEmbeddedToolbar.vue"
@@ -42,7 +42,9 @@ export default {
   },
   setup(props) {
     const licenseStore = useLicenseStore()
-    
+    const i18n = inject('i18n')
+    const t = i18n?.t || ((k) => k)
+
     const isToolbarHidden = computed(
       () => props.license.settings?.icon?.id === "no_icon"
     )
@@ -60,15 +62,15 @@ export default {
 
     const overlayText = computed(() => {
       if (props.license.settings?.display?.mode === "embedded") {
-        return "This is a preview of the embedded toolbar. It will appear on your website inside the element targeted by your CSS selector.";
+        return t("This is a preview of the embedded toolbar. It will appear on your website inside the element targeted by your CSS selector.");
       }
       if (isToolbarHidden.value && props.license.settings?.display?.mode === 'floating') {
-        return "When the 'No Icon' option is selected, the toolbar will not be visible on your website."
+        return t("When the 'No Icon' option is selected, the toolbar will not be visible on your website.")
       }
       if (isIconHiddenByFlag.value && props.license.settings?.display?.mode === 'floating') {
-        return "When the flag is centered, the icon is hidden."
+        return t("When the flag is centered, the icon is hidden.")
       }
-      return "This is a preview of the toolbar. It will appear on your website based on your position settings."
+      return t("This is a preview of the toolbar. It will appear on your website based on your position settings.")
     })
 
     return { licenseStore, overlayText, isToolbarHidden, isIconHiddenByFlag }

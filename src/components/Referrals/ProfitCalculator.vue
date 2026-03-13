@@ -1,48 +1,48 @@
 <template>
   <div class="calculator-container">
     <div class="wl-calculator">
-      <h3 class="section-subtitle">💸 Multilingual Revenue Calculator</h3>
+      <h3 class="section-subtitle">{{ $t('Multilingual Revenue Calculator') }}</h3>
       <p class="section-description">
-        This is a simple calculator to help you estimate your monthly revenue from your agency. 
+        {{ $t('This is a simple calculator to help you estimate your monthly revenue from your agency.') }}
       </p>
 
-      <label><strong>Select Plan:</strong></label>
+      <label><strong>{{ $t('Select Plan:') }}</strong></label>
       <select v-model="selectedPlan" class="input-field">
-        <option value="12">Standard – $12/mo</option>
-        <option value="29">Growth – $29/mo</option>
-        <option value="59">Pro – $59/mo</option>
+        <option value="12">{{ $t('Standard') }} – $12/{{ $t('mo') }}</option>
+        <option value="29">{{ $t('Growth') }} – $29/{{ $t('mo') }}</option>
+        <option value="59">{{ $t('Pro') }} – $59/{{ $t('mo') }}</option>
       </select>
 
-      <label><strong>Setup Fee You'll Charge:</strong></label>
+      <label><strong>{{ $t("Setup Fee You'll Charge:") }}</strong></label>
       <input type="number" v-model.number="setupFee" class="input-field" />
 
-      <label><strong>Monthly Service Fee You'll Charge:</strong></label>
+      <label><strong>{{ $t("Monthly Service Fee You'll Charge:") }}</strong></label>
       <input type="number" v-model.number="clientFee" class="input-field" />
 
       <div class="addons-container">
-        <strong>Add-On Services:</strong>
+        <strong>{{ $t('Add-On Services:') }}</strong>
         <label v-for="(addon, index) in addOns" :key="index">
           <input type="checkbox" v-model="addon.checked" />
-          {{ addon.label }}
+          {{ $t(addon.label) }}
         </label>
       </div>
 
       <button @click="showResults = true" class="btn btn-primary calc-button">
-        💡 Calculate Revenue
+        {{ $t('Calculate Revenue') }}
       </button>
     </div>
 
     <div>
       <div v-if="showResults" class="results-card">
-        <h3 class="results-title">📊 Revenue Summary</h3>
-        <p><strong>Client Setup Fee:</strong> ${{ clientSetupFee }}</p>
-        <p><strong>Total Monthly Fee:</strong> ${{ totalClientMonthlyFee }}</p>
-        <p><strong>Your Web Linguist Cost:</strong> ${{ yourMonthlyCost }}</p>
+        <h3 class="results-title">{{ $t('Revenue Summary') }}</h3>
+        <p><strong>{{ $t('Client Setup Fee:') }}</strong> ${{ clientSetupFee }}</p>
+        <p><strong>{{ $t('Total Monthly Fee:') }}</strong> ${{ totalClientMonthlyFee }}</p>
+        <p><strong>{{ $t('Your Web Linguist Cost:') }}</strong> ${{ yourMonthlyCost }}</p>
         <p class="profit-highlight">
-          <strong>Estimated Monthly Profit:</strong> ${{ monthlyProfit }}
+          <strong>{{ $t('Estimated Monthly Profit:') }}</strong> ${{ monthlyProfit }}
         </p>
         <p class="profit-highlight annual">
-          <strong>Estimated Annual Profit:</strong> ${{ annualProfit }}
+          <strong>{{ $t('Estimated Annual Profit:') }}</strong> ${{ annualProfit }}
         </p>
       </div>
     </div>

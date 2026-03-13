@@ -45,13 +45,13 @@ const addWebhook = () => {
 
 <template>
   <div class="settings-container">
-    <h2 class="page-title">Settings</h2>
+    <h2 class="page-title">{{ $t('Settings') }}</h2>
 
     <!-- API Keys Section -->
     <div class="settings-section">
       <div class="section-header">
-        <h3 class="section-title">API Keys</h3>
-        <button @click="showNewApiKey = true" class="btn btn-primary">Generate Key</button>
+        <h3 class="section-title">{{ $t('API Keys') }}</h3>
+        <button @click="showNewApiKey = true" class="btn btn-primary">{{ $t('Generate Key') }}</button>
       </div>
       
       <div class="api-keys-list">
@@ -60,15 +60,15 @@ const addWebhook = () => {
             <div class="api-key-name">{{ apiKey.name }}</div>
             <div class="api-key-details">
               <span class="api-key-value">{{ apiKey.key }}</span>
-              <span class="api-key-meta">Created: {{ apiKey.created }} • Last used: {{ apiKey.lastUsed }}</span>
+              <span class="api-key-meta">{{ $t('Created:') }} {{ apiKey.created }} • {{ $t('Last used:') }} {{ apiKey.lastUsed }}</span>
             </div>
           </div>
           <div class="api-key-actions">
             <span class="status-badge" :class="{ active: apiKey.active, inactive: !apiKey.active }">
-              {{ apiKey.active ? 'Active' : 'Inactive' }}
+              {{ apiKey.active ? $t('Active') : $t('Inactive') }}
             </span>
-            <button class="btn-action">Copy</button>
-            <button class="btn-action">Revoke</button>
+            <button class="btn-action">{{ $t('Copy') }}</button>
+            <button class="btn-action">{{ $t('Revoke') }}</button>
           </div>
         </div>
       </div>
@@ -77,8 +77,8 @@ const addWebhook = () => {
     <!-- Webhooks Section -->
     <div class="settings-section">
       <div class="section-header">
-        <h3 class="section-title">Webhooks</h3>
-        <button @click="showNewWebhook = true" class="btn btn-primary">Add Webhook</button>
+        <h3 class="section-title">{{ $t('Webhooks') }}</h3>
+        <button @click="showNewWebhook = true" class="btn btn-primary">{{ $t('Add Webhook') }}</button>
       </div>
       
       <div class="webhooks-list">
@@ -92,11 +92,11 @@ const addWebhook = () => {
           </div>
           <div class="webhook-actions">
             <span class="status-badge" :class="{ active: webhook.active, inactive: !webhook.active }">
-              {{ webhook.active ? 'Active' : 'Inactive' }}
+              {{ webhook.active ? $t('Active') : $t('Inactive') }}
             </span>
-            <button class="btn-action">Edit</button>
-            <button class="btn-action">Test</button>
-            <button class="btn-action danger">Delete</button>
+            <button class="btn-action">{{ $t('Edit') }}</button>
+            <button class="btn-action">{{ $t('Test') }}</button>
+            <button class="btn-action danger">{{ $t('Delete') }}</button>
           </div>
         </div>
       </div>
@@ -104,26 +104,26 @@ const addWebhook = () => {
 
     <!-- General Settings -->
     <div class="settings-section">
-      <h3 class="section-title">General Settings</h3>
+      <h3 class="section-title">{{ $t('General Settings') }}</h3>
       
       <div class="settings-form">
         <div class="form-group">
-          <label class="form-label">Default Language</label>
+          <label class="form-label">{{ $t('Default Language') }}</label>
           <select class="form-input">
-            <option value="en">English</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
+            <option value="en">{{ $t('English') }}</option>
+            <option value="es">{{ $t('Spanish') }}</option>
+            <option value="fr">{{ $t('French') }}</option>
+            <option value="de">{{ $t('German') }}</option>
           </select>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Timezone</label>
+          <label class="form-label">{{ $t('Timezone') }}</label>
           <select class="form-input">
-            <option value="UTC">UTC</option>
-            <option value="America/New_York">Eastern Time</option>
-            <option value="America/Los_Angeles">Pacific Time</option>
-            <option value="Europe/London">London Time</option>
+            <option value="UTC">{{ $t('UTC') }}</option>
+            <option value="America/New_York">{{ $t('Eastern Time') }}</option>
+            <option value="America/Los_Angeles">{{ $t('Pacific Time') }}</option>
+            <option value="Europe/London">{{ $t('London Time') }}</option>
           </select>
         </div>
         
@@ -131,7 +131,7 @@ const addWebhook = () => {
           <label class="checkbox-label">
             <input type="checkbox" class="checkbox" />
             <span class="checkmark"></span>
-            Email notifications for translation completion
+            {{ $t('Email notifications for translation completion') }}
           </label>
         </div>
         
@@ -139,12 +139,12 @@ const addWebhook = () => {
           <label class="checkbox-label">
             <input type="checkbox" class="checkbox" />
             <span class="checkmark"></span>
-            Weekly usage reports
+            {{ $t('Weekly usage reports') }}
           </label>
         </div>
         
         <div class="form-actions">
-          <button class="btn btn-primary">Save Settings</button>
+          <button class="btn btn-primary">{{ $t('Save Settings') }}</button>
         </div>
       </div>
     </div>
@@ -154,19 +154,19 @@ const addWebhook = () => {
     <div v-if="showNewApiKey" class="modal-overlay" @click="showNewApiKey = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Generate New API Key</h3>
+          <h3>{{ $t('Generate New API Key') }}</h3>
           <button @click="showNewApiKey = false" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Key Name</label>
-            <input v-model="newApiKey.name" type="text" class="form-input" placeholder="e.g., Production API" />
+            <label>{{ $t('Key Name') }}</label>
+            <input v-model="newApiKey.name" type="text" class="form-input" :placeholder="$t('e.g., Production API')" />
           </div>
-          <p class="modal-note">This API key will have full access to your account. Keep it secure!</p>
+          <p class="modal-note">{{ $t('This API key will have full access to your account. Keep it secure!') }}</p>
         </div>
         <div class="modal-footer">
-          <button @click="showNewApiKey = false" class="btn btn-secondary">Cancel</button>
-          <button @click="generateApiKey" class="btn btn-primary">Generate Key</button>
+          <button @click="showNewApiKey = false" class="btn btn-secondary">{{ $t('Cancel') }}</button>
+          <button @click="generateApiKey" class="btn btn-primary">{{ $t('Generate Key') }}</button>
         </div>
       </div>
     </div>
@@ -175,42 +175,42 @@ const addWebhook = () => {
     <div v-if="showNewWebhook" class="modal-overlay" @click="showNewWebhook = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Add New Webhook</h3>
+          <h3>{{ $t('Add New Webhook') }}</h3>
           <button @click="showNewWebhook = false" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Webhook Name</label>
+            <label>{{ $t('Webhook Name') }}</label>
             <input v-model="newWebhook.name" type="text" class="form-input" />
           </div>
           <div class="form-group">
-            <label>Endpoint URL</label>
+            <label>{{ $t('Endpoint URL') }}</label>
             <input v-model="newWebhook.url" type="url" class="form-input" />
           </div>
           <div class="form-group">
-            <label>Events</label>
+            <label>{{ $t('Events') }}</label>
             <div class="checkbox-group">
               <label class="checkbox-label">
                 <input type="checkbox" value="translation.completed" class="checkbox" />
                 <span class="checkmark"></span>
-                Translation Completed
+                {{ $t('Translation Completed') }}
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" value="translation.failed" class="checkbox" />
                 <span class="checkmark"></span>
-                Translation Failed
+                {{ $t('Translation Failed') }}
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" value="api.error" class="checkbox" />
                 <span class="checkmark"></span>
-                API Error
+                {{ $t('API Error') }}
               </label>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showNewWebhook = false" class="btn btn-secondary">Cancel</button>
-          <button @click="addWebhook" class="btn btn-primary">Add Webhook</button>
+          <button @click="showNewWebhook = false" class="btn btn-secondary">{{ $t('Cancel') }}</button>
+          <button @click="addWebhook" class="btn btn-primary">{{ $t('Add Webhook') }}</button>
         </div>
       </div>
     </div>

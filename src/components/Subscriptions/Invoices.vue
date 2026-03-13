@@ -3,12 +3,12 @@
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Loading invoices...</p>
+      <p>{{ $t('Loading invoices...') }}</p>
     </div>
     <div v-else>
       <SlideInNotification
         :show="showSuccessNotification"
-        message="Payment method updated successfully"
+        :message="$t('Payment method updated successfully')"
         type="success"
       />
       <SlideInNotification
@@ -18,13 +18,13 @@
       />
       <SlideInNotification
         :show="showGenericFailNotification"
-        message="An error occurred"
+        :message="$t('An error occurred')"
         type="error"
       />
       <div class="section-container no-margin">
         <h3 class="section-title">
-          <span v-if="subscriptions.length > 1"> Upcoming Invoices </span>
-          <span v-else> Upcoming Invoice </span>
+          <span v-if="subscriptions.length > 1"> {{ $t('Upcoming Invoices') }} </span>
+          <span v-else> {{ $t('Upcoming Invoice') }} </span>
         </h3>
 
         <div
@@ -46,7 +46,7 @@
                 }}
               </p>
               <p v-if="upcomingInvoice.created" class="processing-date">
-                Processing on {{ formatDate(upcomingInvoice.created) }}
+                {{ $t('Processing on') }} {{ formatDate(upcomingInvoice.created) }}
               </p>
             </div>
             <ul
@@ -70,7 +70,7 @@
               </li>
             </ul>
             <div class="total">
-              <p>Total:</p>
+              <p>{{ $t('Total:') }}</p>
               <p>${{ parseFloat(upcomingInvoice.amount_due).toFixed(2) }}</p>
             </div>
           </div>
@@ -78,14 +78,14 @@
       </div>
 
       <div class="section-container">
-        <h3 class="section-title">Previous Invoices</h3>
+        <h3 class="section-title">{{ $t('Previous Invoices') }}</h3>
         <div class="invoices-table">
           <div class="table-header">
-            <div class="table-cell">Domain</div>
-            <div class="table-cell">Date</div>
-            <div class="table-cell">Amount</div>
-            <div class="table-cell">Status</div>
-            <div class="table-cell">Actions</div>
+            <div class="table-cell">{{ $t('Domain') }}</div>
+            <div class="table-cell">{{ $t('Date') }}</div>
+            <div class="table-cell">{{ $t('Amount') }}</div>
+            <div class="table-cell">{{ $t('Status') }}</div>
+            <div class="table-cell">{{ $t('Actions') }}</div>
           </div>
 
           <div v-for="invoice in invoices" :key="invoice.id" class="table-row">
@@ -105,7 +105,7 @@
                 >{{ invoice.status }}</span
               >
               <span v-else class="status-badge unpaid">{{
-                invoice.status === "open" ? "Failed" : "Error"
+                invoice.status === "open" ? $t("Failed") : $t("Error")
               }}</span>
             </div>
             <div class="table-cell">
@@ -127,7 +127,7 @@
                       align-items: center;
                     "
                   />
-                  Invoice (PDF)
+                  {{ $t('Invoice (PDF)') }}
                 </a>
               </button>
               <button
@@ -141,13 +141,13 @@
                 ]"
                 @click="confirmRetryFailedInvoice(invoice)"
               >
-                <span v-if="!retryingFailedInvoice"> Retry Payment </span>
+                <span v-if="!retryingFailedInvoice"> {{ $t('Retry Payment') }} </span>
                 <span v-else style="display: flex; align-items: center">
                   <div
                     class="loading-spinner-inline"
                     style="width: 20px; height: 20px; margin-right: 10px"
                   ></div>
-                  Retrying...
+                  {{ $t('Retrying...') }}
                 </span>
               </button>
             </div>

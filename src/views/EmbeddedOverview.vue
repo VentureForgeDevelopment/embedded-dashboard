@@ -1,10 +1,9 @@
 <template>
   <div class="embedded-overview-container">
     <div class="welcome-content">
-      <h2 class="welcome-title">Welcome to your WebLinguist Dashboard!</h2>
+      <h2 class="welcome-title">{{ $t('Welcome to your WebLinguist Dashboard!') }}</h2>
       <p class="welcome-subtitle">
-        You can manage all of your website's translation options and settings
-        through this interface.
+        {{ $t("You can manage all of your website's translation options and settings through this interface.") }}
       </p>
     </div>
 
@@ -12,9 +11,9 @@
       <div v-if="activeLicense.subscription_id === null">
         <!-- Active license exists but is free, prompt to upgrade -->
         <UpgradePrompt
-          title="Unlock More Features"
-          description="You currently have a free license. Upgrade to a paid plan to access advanced translation features, more languages, and enhanced customization options."
-          button-text="Upgrade Your License"
+          :title="$t('Unlock More Features')"
+          :description="$t('You currently have a free license. Upgrade to a paid plan to access advanced translation features, more languages, and enhanced customization options.')"
+          :button-text="$t('Upgrade Your License')"
           :upgrade-route="{
             name: 'checkout',
             params: { type: 'upgrade-free', id: activeLicense.id },
@@ -24,16 +23,15 @@
       <div v-else>
         <!-- Active license exists and is paid, provide link to manage it -->
         <div class="manage-license-prompt">
-          <h3 class="manage-license-title">Manage Your Website</h3>
+          <h3 class="manage-license-title">{{ $t('Manage Your Website') }}</h3>
           <p class="manage-license-description">
-            You have an active WebLinguist license. Click below to customize
-            your translation settings and manage your website.
+            {{ $t('You have an active WebLinguist license. Click below to customize your translation settings and manage your website.') }}
           </p>
           <router-link
             :to="{ name: 'manage-license', params: { id: activeLicense.id } }"
             class="btn btn-primary manage-license-btn"
           >
-            Go to Customize Page
+            {{ $t('Go to Customize Page') }}
           </router-link>
         </div>
       </div>
@@ -41,9 +39,9 @@
     <div v-else>
       <!-- No active license, prompt to create a free one -->
       <UpgradePrompt
-        title="Let's Get You Set Up"
-        description="To start translating your website, you first need to create a free license. This will connect your site to the WebLinguist service and activate your translation toolbar."
-        button-text="Create Free License"
+        :title="$t('Let\'s Get You Set Up')"
+        :description="$t('To start translating your website, you first need to create a free license. This will connect your site to the WebLinguist service and activate your translation toolbar.')"
+        :button-text="$t('Create Free License')"
         :upgrade-route="{ name: 'checkout', query: { plan: 'free' } }"
       />
     </div>

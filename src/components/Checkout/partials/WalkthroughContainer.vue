@@ -2,7 +2,7 @@
   <div class="walkthrough-container">
     <div class="walkthrough-sidebar">
       <div class="steps-list-container">
-        <h1>Start Translating in Minutes</h1>
+        <h1>{{ $t('Start Translating in Minutes') }}</h1>
         <div class="horizontal-scroll-helper">
           <!-- Dynamic steps from notifications -->
           <ul v-if="mode === 'notifications'">
@@ -16,7 +16,7 @@
             >
               <span class="completed-indicator">
                 <span v-if="step.viewed || (isSecondStep(step) && isDrawerOpen) " style="width: 36px; height: 36px">
-                  <CheckCircleIcon fill-color="white" size="36" />
+                  <CheckCircleIcon fill-color="white" size=36 />
                 </span>
               </span>
               {{ callParseNotification(step, "title") }}
@@ -37,7 +37,7 @@
                   v-if="index < localCurrentStaticStepIndex"
                   style="width: 36px; height: 36px"
                 >
-                  <CheckCircleIcon fill-color="white" size="36" />
+                  <CheckCircleIcon fill-color="white" size=36 />
                 </span>
               </span>
               {{ step }}
@@ -46,7 +46,7 @@
         </div>
       </div>
     </div>
-    <p class="assurance-msg">Easy Setup · Cancel Anytime</p>
+    <p class="assurance-msg">{{ $t('Easy Setup · Cancel Anytime') }}</p>
   </div>
 </template>
 

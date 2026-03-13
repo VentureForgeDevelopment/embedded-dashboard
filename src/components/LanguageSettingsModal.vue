@@ -2,7 +2,7 @@
   <div v-if="show" class="modal-overlay" @click="closeModal">
     <div class="modal-container" @click.stop>
       <div class="modal-header">
-        <h3 class="modal-title">Manage Languages</h3>
+        <h3 class="modal-title">{{ $t('Manage Languages') }}</h3>
         <button class="close-button" @click="closeModal">&times;</button>
       </div>
 
@@ -21,10 +21,10 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" @click="closeModal" :disabled="isSaving">
-          Cancel
+          {{ $t('Cancel') }}
         </button>
         <button class="btn btn-primary" @click="saveLanguages" :disabled="isSaving">
-          {{ isSaving ? "Saving..." : "Save Languages" }}
+          {{ isSaving ? $t("Saving...") : $t("Save Languages") }}
         </button>
       </div>
     </div>

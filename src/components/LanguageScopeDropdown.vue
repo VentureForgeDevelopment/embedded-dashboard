@@ -12,7 +12,7 @@
     </button>
 
     <div v-if="isOpen" class="dropdown-menu">
-      <div class="dropdown-header">Select Target Language</div>
+      <div class="dropdown-header">{{ $t('Select Target Language') }}</div>
 
       <!-- Language Options -->
       <button
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { useLicenseStore } from '../stores/license'
 
 const props = defineProps({
@@ -49,6 +49,8 @@ const props = defineProps({
   }
 })
 
+const i18n = inject('i18n')
+const t = i18n?.t || ((k) => k)
 const licenseStore = useLicenseStore()
 
 const globalIcon = computed(() => {
@@ -86,7 +88,7 @@ const currentIcon = computed(() => {
 
 const currentLabel = computed(() => {
   const lang = languages.value.find(l => l.code === props.modelValue)
-  return lang ? `${lang.name}` : 'Select...'
+  return lang ? `${lang.name}` : t('Select...')
 })
 
 const toggleDropdown = () => {

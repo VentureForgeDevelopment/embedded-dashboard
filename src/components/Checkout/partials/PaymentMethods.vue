@@ -2,21 +2,21 @@
   <div v-if="paymentMethods.length > 0">
     <SlideInNotification
       :show="showSuccessNotification"
-      message="Payment method updated successfully"
+      :message="$t('Payment method updated successfully')"
       type="success"
     />
     <SlideInNotification
       :show="showFailNotification"
-      message="Failed to update payment method"
+      :message="$t('Failed to update payment method')"
       type="error"
     />
     <SlideInNotification
       :show="showGenericFailNotification"
-      message="An error occurred"
+      :message="$t('An error occurred')"
       type="error"
     />
 
-    <label :for="`payment_methods_${uniqueId}`">{{ label }}</label>
+    <label :for="`payment_methods_${uniqueId}`">{{ $t(label) }}</label>
     <div class="payment-methods-wrapper">
       <select
         :disabled="accountRole === 'Read Only' || accountRole === 'User'"
@@ -28,7 +28,7 @@
         "
       >
         <option value="" selected disabled hidden>
-          {{ selectedMethodText }}
+          {{ $t(selectedMethodText) }}
         </option>
         <option
           v-for="item in sortedPaymentMethods"

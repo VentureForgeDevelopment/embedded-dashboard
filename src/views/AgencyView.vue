@@ -4,7 +4,7 @@
       <div class="page-header">
         <div class="header-content">
           <div class="title-section">
-            <h1 class="page-title">Agency</h1>
+            <h1 class="page-title">{{ $t('Agency') }}</h1>
           </div>
         </div>
       </div>
@@ -14,21 +14,21 @@
           :class="{ active: activeTab === 'revenue-kit' }"
           @click="navigateToRevenueKitTab"
         >
-          Revenue Kit
+          {{ $t('Revenue Kit') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'profit-calculator' }"
           @click="navigateToProfitCalculatorTab"
         >
-          Multilingual Revenue Calculator
+          {{ $t('Multilingual Revenue Calculator') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'agency-progress-tracker' }"
           @click="navigateToAgencyProgressTrackerTab"
         >
-          Agency Progress Tracker
+          {{ $t('Agency Progress Tracker') }}
         </button>
       </div>
     </div>

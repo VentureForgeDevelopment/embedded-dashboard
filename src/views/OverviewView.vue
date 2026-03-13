@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue"
+import { ref, onMounted, onUnmounted, computed } from "vue"
 import { useAuthStore } from "../stores/auth"
+import { useLicenseStore } from "../stores/license"
+import { useRouter } from "vue-router"
 import Notifications from "../components/Notifications/Notifications.vue"
 import Plus from "vue-material-design-icons/Plus.vue"
 import Earth from "vue-material-design-icons/Earth.vue"
@@ -8,6 +10,35 @@ import Pencil from "vue-material-design-icons/Pencil.vue"
 import AccountGroup from "vue-material-design-icons/AccountGroup.vue"
 
 const authStore = useAuthStore()
+const licenseStore = useLicenseStore()
+const router = useRouter()
+
+const showAllLicenses = ref(false)
+
+const licenses = computed(() => licenseStore.state.licenses || [])
+const hasLicenses = computed(() => licenses.value.length > 0)
+
+const sortedLicenses = computed(() =>
+  [...licenses.value].sort((a, b) => (b.usage?.words_translated ?? 0) - (a.usage?.words_translated ?? 0))
+)
+const visibleLicenses = computed(() =>
+  showAllLicenses.value ? sortedLicenses.value : sortedLicenses.value.slice(0, 2)
+)
+const hasMoreLicenses = computed(() => sortedLicenses.value.length > 2)
+
+const ringCircumference = 2 * Math.PI * 15.5 // ~97.39
+
+function getRingOffset(license) {
+  const pct = Math.min(license.usage?.usage_percentage ?? 0, 100)
+  return ringCircumference - (ringCircumference * pct) / 100
+}
+
+function getPlanLabel(license) {
+  if (license.type === 'free') return 'Free'
+  if (license.type === 'manual') return 'Manual'
+  const product = license.product || 'starter'
+  return product.charAt(0).toUpperCase() + product.slice(1)
+}
 
 const greetings = [
   "Welcome back", // English
@@ -31,6 +62,9 @@ onMounted(() => {
       clearInterval(greetingInterval)
     }
   }, 4000)
+
+  // Ensure licenses (with usage data) are loaded
+  licenseStore.ensureLicensesLoaded()
 })
 
 onUnmounted(() => {
@@ -48,37 +82,64 @@ onUnmounted(() => {
         </Transition><span v-if="authStore.user?.name?.trim() && authStore.user?.name !== 'user'">, {{ authStore.user.name }}</span>!
       </h2>
       <p class="page-subtitle">
-        Here's what's happening with your websites today.
+        {{ $t("Here's what's happening with your websites today.") }}
       </p>
     </div>
 
-    <!-- Statistics Grid -->
-    <!-- <div class="stats-grid">
-      <div v-for="stat in stats" :key="stat.label" class="stat-card" :class="`stat-${stat.color}`">
-        <div class="stat-icon">{{ stat.icon }}</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stat.value }}</div>
-          <div class="stat-label">{{ stat.label }}</div>
+    <!-- Usage Overview (per-license) -->
+    <div v-if="hasLicenses" class="usage-overview-section">
+      <h3 class="section-title">{{ $t('Usage Overview') }}</h3>
+      <div class="license-usage-list">
+        <div
+          v-for="license in visibleLicenses"
+          :key="license.id"
+          class="content-card license-usage-row"
+        >
+          <div class="usage-row-left">
+            <div class="usage-ring-wrapper">
+              <svg class="usage-ring" viewBox="0 0 36 36">
+                <circle class="usage-ring-bg" cx="18" cy="18" r="15.5" />
+                <circle
+                  class="usage-ring-fill"
+                  cx="18" cy="18" r="15.5"
+                  :stroke-dasharray="ringCircumference"
+                  :stroke-dashoffset="getRingOffset(license)"
+                />
+              </svg>
+              <span class="usage-ring-text">{{ Math.round(license.usage?.usage_percentage ?? 0) }}%</span>
+            </div>
+            <div class="usage-row-info">
+              <span class="license-domain">{{ license.domain_name || 'Unnamed License' }}</span>
+              <span class="usage-words">{{ (license.usage?.words_translated ?? 0).toLocaleString() }} {{ $t('words') }}</span>
+            </div>
+          </div>
+          <button
+            class="btn btn-small btn-outline see-more-btn"
+            @click="router.push({ name: 'manage-license-analytics', params: { id: license.id } })"
+          >
+            {{ $t('See More') }}
+          </button>
         </div>
       </div>
-    </div> -->
+      <button
+        v-if="hasMoreLicenses"
+        class="show-more-btn"
+        @click="showAllLicenses = !showAllLicenses"
+      >
+        {{ showAllLicenses ? $t('Show Less') : $t('Show More') }} ({{ sortedLicenses.length - 2 }} {{ $t('more') }})
+      </button>
+    </div>
 
     <!-- Content Grid -->
     <div class="content-grid">
-      <!-- Recent Activity -->
-      <div class="content-card notifications-card">
-        <h3 class="card-title">Notifications</h3>
-        <Notifications :show_header="false" />
-      </div>
-
       <!-- Quick Actions -->
       <div class="content-card">
-        <h3 class="card-title">Quick Actions</h3>
+        <h3 class="card-title">{{ $t('Quick Actions') }}</h3>
         <div class="quick-actions">
           <router-link to="/checkout" class="action-button">
             <span class="action-icon">
               <Plus
-                size="40"
+                size=40
                 style="
                   display: flex;
                   justify-content: center;
@@ -86,12 +147,12 @@ onUnmounted(() => {
                 "
               />
             </span>
-            <span>Add Website</span>
+            <span>{{ $t('Add Website') }}</span>
           </router-link>
           <router-link to="/websites" class="action-button">
             <span class="action-icon">
               <Earth
-                size="38"
+                size=38
                 style="
                   display: flex;
                   justify-content: center;
@@ -99,12 +160,12 @@ onUnmounted(() => {
                 "
               />
             </span>
-            <span>Manage Translations</span>
+            <span>{{ $t('Manage Translations') }}</span>
           </router-link>
           <router-link to="/edit-account" class="action-button">
             <span class="action-icon">
               <Pencil
-                size="38"
+                size=38
                 style="
                   display: flex;
                   justify-content: center;
@@ -112,12 +173,12 @@ onUnmounted(() => {
                 "
               />
             </span>
-            <span>Edit Account</span>
+            <span>{{ $t('Edit Account') }}</span>
           </router-link>
           <router-link to="/manage-users" class="action-button">
             <span class="action-icon">
               <AccountGroup
-                size="38"
+                size=38
                 style="
                   display: flex;
                   justify-content: center;
@@ -125,9 +186,15 @@ onUnmounted(() => {
                 "
               />
             </span>
-            <span>Manage Users</span>
+            <span>{{ $t('Manage Users') }}</span>
           </router-link>
         </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="content-card notifications-card">
+        <h3 class="card-title">{{ $t('Notifications') }}</h3>
+        <Notifications :show_header="false" />
       </div>
     </div>
   </div>
@@ -370,6 +437,126 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   height: 40px; /* To vertically align all icons */
+}
+
+/* Usage Overview Section */
+.usage-overview-section {
+  margin-bottom: 2rem;
+}
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+.license-usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.license-usage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+}
+.usage-row-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* SVG ring chart */
+.usage-ring-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.usage-ring {
+  width: 44px;
+  height: 44px;
+  transform: rotate(-90deg);
+}
+.usage-ring-bg {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 3;
+}
+.usage-ring-fill {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+.usage-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.usage-row-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+.license-domain {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+.usage-words {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  text-align: left;
+}
+
+.see-more-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: none;
+  color: var(--accent-color, #667eea);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.see-more-btn:hover {
+  background: rgba(102, 126, 234, 0.08);
+  border-color: var(--accent-color, #667eea);
+}
+
+.show-more-btn {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.5rem 1.5rem;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.show-more-btn:hover {
+  border-color: var(--accent-color, #667eea);
+  color: var(--accent-color, #667eea);
 }
 
 /* Responsive Design */

@@ -3,14 +3,14 @@
     <WalkthroughContainer
       v-if="isEmbedded"
       mode="static"
-      :static-steps="['Sign Up', 'Setup Your Plan', 'Translate Your Website']"
+      :static-steps="[$t('Sign Up'), $t('Setup Your Plan'), $t('Translate Your Website')]"
       :current-static-step-index="currentOnboardStepIndex"
     />
     <WalkthroughContainer v-else />
     <div class="account-setup-content padding">
       <SlideInNotification
         :show="copiedScript"
-        message="Installation script copied to clipboard"
+        :message="$t('Installation script copied to clipboard')"
         type="success"
       />
       <div>
@@ -34,7 +34,7 @@
               </span>
               <span class="completed-indicator">
                 <span v-if="step.viewed" style="width: 30px; height: 30px">
-                  <CheckCircleIcon fill-color="#27ae60" size="30" />
+                  <CheckCircleIcon fill-color="#27ae60" size=30 />
                 </span>
               </span>
             </div>
@@ -49,7 +49,7 @@
                 "
               >
                 <div @click="copyInstallationScript" class="embed-code">
-                  Click to Copy
+                  {{ $t('Click to Copy') }}
                   <pre class="installation-script">{{
                     firstLicenseEmbedScript
                   }}</pre>
@@ -67,7 +67,7 @@
                   @click="doAction(callParseNotification(step, 'action_slug'))"
                   class="btn btn-primary"
                 >
-                  More Info
+                  {{ $t('More Info') }}
                 </button>
                 <!-- remove this button for second 'select a plan' step -->
                 <button
@@ -77,7 +77,7 @@
                   class="mark-as-completed btn btn-primary"
                   @click="markAsCompleted(step)"
                 >
-                  Mark as Completed
+                  {{ $t('Mark as Completed') }}
                 </button>
               </div>
             </div>

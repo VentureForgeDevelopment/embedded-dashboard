@@ -1,30 +1,30 @@
 <template>
   <div class="form-container">
-    <h3>Welcome Back!</h3>
+    <h3>{{ $t('Welcome Back!') }}</h3>
     <p class="current-step-container">
-      Login to manage your account.
+      {{ $t('Login to manage your account.') }}
     </p>
     <form @submit.prevent="handleLogin">
       <div class="form-group">
-        <label for="email">Email Address</label>
+        <label for="email">{{ $t('Email Address') }}</label>
         <input type="email" id="email" v-model="email" required autocomplete="email" />
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">{{ $t('Password') }}</label>
         <input type="password" id="password" v-model="password" required autocomplete="current-password" />
       </div>
       <div v-if="errorMessage" class="error-message">
         {{ errorMessage }}
       </div>
       <div class="forgot-password">
-        <a href="https://weblinguist.ai/login/#/forgot-password" target="_blank">Forgot your password?</a>
+        <a href="https://weblinguist.ai/login/#/forgot-password" target="_blank">{{ $t('Forgot your password?') }}</a>
       </div>
       <button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
+        {{ isLoading ? $t('Logging in...') : $t('Login') }}
       </button>
     </form>
     <div class="toggle-link">
-      Don't have an account? <a href="#" @click.prevent="$emit('switchToRegister')">Register here</a>
+      {{ $t("Don't have an account?") }} <a href="#" @click.prevent="$emit('switchToRegister')">{{ $t('Register here') }}</a>
     </div>
   </div>
 </template>

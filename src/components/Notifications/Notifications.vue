@@ -3,11 +3,11 @@
     <div class="loading-overlay" v-if="loading">
       <div v-if="loading" class="loading-container">
         <div class="loading-spinner"></div>
-        <p>Loading notifications...</p>
+        <p>{{ $t('Loading notifications...') }}</p>
       </div>
     </div>
     <div v-if="!viewingSingleNotification" class="notifications-wrapper">
-      <h5 v-if="show_header" class="notifications-header">Notifications</h5>
+      <h5 v-if="show_header" class="notifications-header">{{ $t('Notifications') }}</h5>
       <ul v-if="notifications.length > 0">
         <li
           v-for="notification in notifications"
@@ -25,10 +25,10 @@
             <Email />
           </span>
           <span class="notification-title">
-            {{ callParseNotification(notification, "title") }}
+            <TDynamic :text="callParseNotification(notification, 'title')" />
           </span>
           <span class="notification-body-preview">
-            {{ callParseNotification(notification, "body") }}
+            <TDynamic :text="callParseNotification(notification, 'body')" />
           </span>
           <span class="notification-date">
             {{ formatDate(notification.created_at) }}
@@ -36,7 +36,7 @@
         </li>
       </ul>
       <div v-else>
-        <p>No notifications found.</p>
+        <p>{{ $t('No notifications found.') }}</p>
       </div>
     </div>
     <div v-else class="notification-single-wrapper">

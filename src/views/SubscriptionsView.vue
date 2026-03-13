@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Loading subscriptions...</p>
+      <p>{{ $t('Loading subscriptions...') }}</p>
     </div>
 
     <div v-else>
@@ -11,10 +11,10 @@
         v-if="subscriptions && subscriptions.length > 0"
         class="subscriptions-switch-wrapper"
       >
-        <p class="subscriptions-switch-title">Viewing: All Subscriptions</p>
+        <p class="subscriptions-switch-title">{{ $t('Viewing: All Subscriptions') }}</p>
         <ul>
           <li>
-            <a href="#" class="subscription-link subscription-link-all active">All</a>
+            <a href="#" class="subscription-link subscription-link-all active">{{ $t('All') }}</a>
           </li>
           <li v-for="subscription in subscriptions" :key="subscription.id">
             <a
@@ -34,13 +34,13 @@
           <div v-if="isShopifyPlatform" class="section-container">
             <div class="shopify-billing-info">
               <p v-if="shopifyBillingStatus" class="shopify-plan-info">
-                <strong>Current Plan:</strong> {{ shopifyBillingStatus.plan_name || 'Free' }}
+                <strong>{{ $t('Current Plan:') }}</strong> {{ shopifyBillingStatus.plan_name || $t('Free') }}
                 <span v-if="shopifyBillingStatus.status && shopifyBillingStatus.status !== 'free'" class="shopify-status-badge" :class="'status-' + shopifyBillingStatus.status">
                   {{ shopifyBillingStatus.status }}
                 </span>
               </p>
               <p style="font-size: 14px; color: var(--text-secondary);">
-                Billing is managed through your Shopify account.
+                {{ $t('Billing is managed through your Shopify account.') }}
               </p>
             </div>
           </div>
@@ -60,7 +60,7 @@
                   },
                 ]"
               >
-                Create New Payment Method
+                {{ $t('Create New Payment Method') }}
                 <PlusCircleOutline
                   style="
                     display: flex;
@@ -84,7 +84,7 @@
                     margin-right: 5px;
                   "
                 />
-                Back
+                {{ $t('Back') }}
               </button>
               <CreatePaymentMethod
                 @paymentMethodCreated="creatingNewMethod = false"
@@ -97,9 +97,9 @@
               class="btn btn-primary"
               @click="goToCheckoutPage"
             >
-              {{ isShopifyPlatform ? 'Change Plan' : 'Create a Subscription' }}
+              {{ isShopifyPlatform ? $t('Change Plan') : $t('Create a Subscription') }}
               <Plus
-                size="20"
+                size=20
                 style="
                   display: inline-flex;
                   justify-content: center;
@@ -119,7 +119,7 @@
           />
         </div>
         <div v-else-if="!isShopifyPlatform">
-          <p>No invoices found.</p>
+          <p>{{ $t('No invoices found.') }}</p>
         </div>
         <div v-if="isShopifyPlatform" class="shopify-manage-billing">
           <a
@@ -127,16 +127,16 @@
             target="_top"
             class="btn btn-outline"
           >
-            Manage Billing in Shopify Admin
+            {{ $t('Manage Billing in Shopify Admin') }}
           </a>
         </div>
       </div>
       <div v-else>
         <div class="full-page-cta">
-          <h1>No Subscriptions Yet!</h1>
-          <p>No subscriptions found. Please create a new subscription.</p>
+          <h1>{{ $t('No Subscriptions Yet!') }}</h1>
+          <p>{{ $t('No subscriptions found. Please create a new subscription.') }}</p>
           <button v-if="accountRole !== 'Read Only' && showPurchaseBtn" class="btn btn-primary" @click="goToCheckoutPage">
-            Purchase a Subscription
+            {{ $t('Purchase a Subscription') }}
           </button>
         </div>
       </div>

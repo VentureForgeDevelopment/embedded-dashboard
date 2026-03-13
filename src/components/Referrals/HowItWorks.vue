@@ -10,17 +10,17 @@
             margin-right: 0.5rem;
           "
         />
-        How It Works
+        {{ $t('How It Works') }}
       </h3>
       <ol class="steps-list">
-        <li>Share your unique referral link with potential customers</li>
+        <li>{{ $t('Share your unique referral link with potential customers') }}</li>
         <li>
-          When they sign up using your link, they'll be tracked as your referral
+          {{ $t("When they sign up using your link, they'll be tracked as your referral") }}
         </li>
         <li>
-          Earn 30% commission on <em>each transaction</em> your referrals make
+          {{ $t('Earn 30% commission on') }} <em>{{ $t('each transaction') }}</em> {{ $t('your referrals make') }}
         </li>
-        <li>Recieve payouts when you reach $100 in earnings</li>
+        <li>{{ $t('Recieve payouts when you reach $100 in earnings') }}</li>
       </ol>
     </div>
   </div>

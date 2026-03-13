@@ -5,7 +5,7 @@
       :class="{ filled: isFilled }"
       @click.stop="handleClick"
     >
-      {{ isFilled ? filledText : nullText }}
+      {{ isFilled ? $t(filledText) : $t(nullText) }}
     </button>
     <transition name="fade">
       <span v-if="isFilled && helperText" class="filled-helper-text">

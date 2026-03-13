@@ -12,35 +12,52 @@
       type="fail"
     />
 
+    <!-- Free Tier Upgrade Banner -->
+    <div v-if="isFree" class="free-tier-banner">
+      <div class="banner-content">
+        <div class="banner-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+        </div>
+        <div class="banner-text">
+          <h4>{{ $t("You're on the Free Plan") }}</h4>
+          <p>{{ $t('Upgrade to unlock more languages, glossary management, and more premium features.') }}</p>
+          <p class="banner-note">{{ $t('Upgrading also removes the "Powered by Web Linguist" link from your toolbar.') }}</p>
+        </div>
+        <button @click="goToCheckout" class="btn btn-primary banner-btn">{{ $t('Upgrade Now') }}</button>
+      </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div v-if="isSaving" class="loading-overlay">
       <div class="loading-spinner"></div>
-      <p>Saving...</p>
+      <p>{{ $t('Saving...') }}</p>
     </div>
 
     <!-- Display Settings Card -->
     <div class="overview-card display-settings-card" :class="{ dirty: isDisplayDirty }">
       <div class="card-header">
         <h3 class="card-title" :class="{ 'dirty-header': isDisplayDirty }">
-          Display
+          {{ $t('Display') }}
         </h3>
       </div>
       <div class="card-content">
         <div class="form-group">
-          <label class="form-label">Display Mode</label>
+          <label class="form-label">{{ $t('Display Mode') }}</label>
           <div class="radio-group">
             <label class="radio-option">
               <input type="radio" value="floating" v-model="displayMode" />
-              <span>Floating</span>
+              <span>{{ $t('Floating') }}</span>
             </label>
             <label class="radio-option">
               <input type="radio" value="embedded" v-model="displayMode" />
-              <span>Embedded</span>
+              <span>{{ $t('Embedded') }}</span>
             </label>
           </div>
         </div>
         <div v-if="displayMode === 'embedded'" class="form-group" style="margin-top: 1rem;">
-          <label class="form-label" for="css-selector">CSS Selector for Embedded Element</label>
+          <label class="form-label" for="css-selector">{{ $t('CSS Selector for Embedded Element') }}</label>
           <input
             id="css-selector"
             type="text"
@@ -50,12 +67,12 @@
             :class="{ 'input-error': !isCssSelectorValid && cssSelector }"
           />
           <small v-if="!isCssSelectorValid && cssSelector" class="form-help error-text">
-            Please enter a valid CSS selector.
+            {{ $t('Please enter a valid CSS selector.') }}
           </small>
-          <small class="form-help">The CSS selector for the HTML element where the widget will be embedded.</small>
+          <small class="form-help">{{ $t('The CSS selector for the HTML element where the widget will be embedded.') }}</small>
         </div>
         <div v-if="displayMode === 'embedded'" class="form-group" style="margin-top: 1rem;">
-          <label class="form-label" for="custom-css">Custom CSS</label>
+          <label class="form-label" for="custom-css">{{ $t('Custom CSS') }}</label>
           <textarea
             id="custom-css"
             v-model="customCss"
@@ -65,9 +82,9 @@
             rows="5"
           ></textarea>
           <small v-if="!isCustomCssValid && customCss" class="form-help error-text">
-            Please enter valid CSS rules.
+            {{ $t('Please enter valid CSS rules.') }}
           </small>
-          <small class="form-help">Add custom CSS rules to style the embedded widget. This will be applied within the widget's scope.</small>
+          <small class="form-help">{{ $t("Add custom CSS rules to style the embedded widget. This will be applied within the widget's scope.") }}</small>
         </div>
       </div>
     </div>
@@ -75,24 +92,25 @@
     <div class="overview-grid">
       <button
         class="btn btn-outline reset-settings-btn"
+        :style="{ top: isFree ? '140px' : '10px' }"
         @click="restoreDefaults"
         :disabled="isSaving"
       >
-        Reset to Default Settings
+        {{ $t('Reset to Default Settings') }}
       </button>
 
       <!-- Position Settings Card -->
       <div v-if="displayMode === 'floating'" class="overview-card" :class="{ dirty: isPositionDirty }">
         <div class="card-header">
           <h3 class="card-title" :class="{ 'dirty-header': isPositionDirty }">
-            Position
+            {{ $t('Position') }}
           </h3>
         </div>
         <div class="card-content">
           <!-- Horizontal & Vertical Position -->
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Horizontal Position</label>
+              <label class="form-label">{{ $t('Horizontal Position') }}</label>
               <div class="radio-group">
                 <label class="radio-option">
                   <input
@@ -100,7 +118,7 @@
                     value="left"
                     v-model="position.horizontal"
                   />
-                  <span>Left</span>
+                  <span>{{ $t('Left') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -108,7 +126,7 @@
                     value="middle"
                     v-model="position.horizontal"
                   />
-                  <span>Middle</span>
+                  <span>{{ $t('Middle') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -116,16 +134,16 @@
                     value="right"
                     v-model="position.horizontal"
                   />
-                  <span>Right</span>
+                  <span>{{ $t('Right') }}</span>
                 </label>
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Vertical Position</label>
+              <label class="form-label">{{ $t('Vertical Position') }}</label>
               <div class="radio-group">
                 <label class="radio-option">
                   <input type="radio" value="top" v-model="position.vertical" />
-                  <span>Top</span>
+                  <span>{{ $t('Top') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -133,7 +151,7 @@
                     value="middle"
                     v-model="position.vertical"
                   />
-                  <span>Middle</span>
+                  <span>{{ $t('Middle') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -141,7 +159,7 @@
                     value="bottom"
                     v-model="position.vertical"
                   />
-                  <span>Bottom</span>
+                  <span>{{ $t('Bottom') }}</span>
                 </label>
               </div>
             </div>
@@ -151,7 +169,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="horizontal-offset"
-                >Horizontal Offset (px)</label
+                >{{ $t('Horizontal Offset (px)') }}</label
               >
               <input
                 id="horizontal-offset"
@@ -164,7 +182,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="vertical-offset"
-                >Vertical Offset (px)</label
+                >{{ $t('Vertical Offset (px)') }}</label
               >
               <input
                 id="vertical-offset"
@@ -183,7 +201,7 @@
       <div v-if="displayMode === 'floating'" class="overview-card" :class="{ dirty: isIconDirty }">
         <div class="card-header">
           <h3 class="card-title" :class="{ 'dirty-header': isIconDirty }">
-            Launcher
+            {{ $t('Launcher') }}
           </h3>
         </div>
         <div class="card-content">
@@ -224,7 +242,7 @@
                 v-model="flagIcon"
               />
               <span class="toggle-slider"></span>
-              <span class="toggle-text">Show Flag</span>
+              <span class="toggle-text">{{ $t('Show Flag') }}</span>
             </label>
 
             <div v-if="flagIcon">
@@ -235,7 +253,7 @@
                     value="floating"
                     v-model="flagIconPosition"
                   />
-                  <span>Floating</span>
+                  <span>{{ $t('Floating') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -243,7 +261,7 @@
                     value="center"
                     v-model="flagIconPosition"
                   />
-                  <span>Centered</span>
+                  <span>{{ $t('Centered') }}</span>
                 </label>
               </div>
             </div>
@@ -255,7 +273,7 @@
             style="margin-top: 1rem"
           >
             <label class="form-label" for="default-icon-variant"
-              >Icon Style</label
+              >{{ $t('Icon Style') }}</label
             >
             <select
               id="default-icon-variant"
@@ -277,7 +295,7 @@
             class="icon-bg-color-section"
           >
             <br />
-            <p class="form-label">Icon Color</p>
+            <p class="form-label">{{ $t('Icon Color') }}</p>
             <div class="simple-color-picker">
               <input
                 type="color"
@@ -291,7 +309,7 @@
                     :style="{ backgroundColor: iconColor }"
                   ></span>
                 </span>
-                <span class="color-value">Color</span>
+                <span class="color-value">{{ $t('Color') }}</span>
                 <Pencil
                   fill-color="gray"
                   style="
@@ -311,15 +329,15 @@
           >
             <hr />
             <div class="form-group" style="padding-top: 1rem">
-              <label class="form-label">Size</label>
+              <label class="form-label">{{ $t('Size') }}</label>
               <div class="radio-group">
                 <label class="radio-option">
                   <input type="radio" value="small" v-model="iconSize" />
-                  <span>Small</span>
+                  <span>{{ $t('Small') }}</span>
                 </label>
                 <label class="radio-option">
                   <input type="radio" value="large" v-model="iconSize" />
-                  <span>Large</span>
+                  <span>{{ $t('Large') }}</span>
                 </label>
               </div>
             </div>
@@ -331,7 +349,7 @@
       <div v-if="displayMode === 'embedded'" class="overview-card" :class="{ dirty: isEmbeddedStyleDirty }">
         <div class="card-header">
           <h3 class="card-title" :class="{ 'dirty-header': isEmbeddedStyleDirty }">
-            Style
+            {{ $t('Style') }}
           </h3>
         </div>
         <div class="card-content">
@@ -339,11 +357,11 @@
             <div class="radio-group">
               <label class="radio-option">
                 <input type="radio" value="full" v-model="embeddedStyle" />
-                <span>Language Names & Icons</span>
+                <span>{{ $t('Language Names & Icons') }}</span>
               </label>
               <label class="radio-option">
                 <input type="radio" value="icons_only" v-model="embeddedStyle" />
-                <span>Icons Only</span>
+                <span>{{ $t('Icons Only') }}</span>
               </label>
             </div>
           </div>
@@ -354,7 +372,7 @@
       <div class="overview-card" :class="{ dirty: isColorsDirty }">
         <div class="card-header">
           <h3 class="card-title" :class="{ 'dirty-header': isColorsDirty }">
-            Colors
+            {{ $t('Colors') }}
           </h3>
         </div>
         <div class="card-content">
@@ -367,7 +385,7 @@
               v-model="accentColor"
               :mode="accentColor.mode"
             />
-            <p>Accent Color</p>
+            <p>{{ $t('Accent Color') }}</p>
             <Pencil
               fill-color="gray"
               style="
@@ -410,17 +428,17 @@
       <div v-if="displayMode === 'floating'" class="overview-card" :class="{ dirty: isTtsDirty && hasTtsAccess }">
         <div class="card-header">
           <h3 class="card-title" :class="{ 'dirty-header': isTtsDirty && hasTtsAccess }">
-            Text to Speech
+            {{ $t('Text to Speech') }}
           </h3>
-          <span v-if="!hasTtsAccess" class="premium-badge">Premium</span>
+          <span v-if="!hasTtsAccess" class="premium-badge">{{ $t('Premium') }}</span>
         </div>
         <div class="card-content">
           <!-- Free tier upgrade prompt -->
           <div v-if="!hasTtsAccess" class="tts-upgrade-prompt">
             <p class="upgrade-text">
-              Text-to-Speech is a premium feature available on our Growth plan or higher. Upgrade to allow visitors to listen to your translated content.
+              {{ $t('Text-to-Speech is a premium feature available on our Growth plan or higher. Upgrade to allow visitors to listen to your translated content.') }}
             </p>
-            <button @click="goToCheckout" class="btn btn-outline btn-sm">Upgrade to Enable</button>
+            <button @click="goToCheckout" class="btn btn-outline btn-sm">{{ $t('Upgrade to Enable') }}</button>
           </div>
 
           <!-- Normal TTS controls for paid users -->
@@ -433,10 +451,10 @@
                   v-model="ttsEnabled"
                 />
                 <span class="toggle-slider"></span>
-                <span class="toggle-text">Enable Text-to-Speech</span>
+                <span class="toggle-text">{{ $t('Enable Text-to-Speech') }}</span>
               </label>
               <small class="form-help"
-                >Enable or disable the text-to-speech functionality.</small
+                >{{ $t('Enable or disable the text-to-speech functionality.') }}</small
               >
             </div>
 
@@ -448,10 +466,10 @@
                   v-model="ttsHighlighting"
                 />
                 <span class="toggle-slider"></span>
-                <span class="toggle-text">Enable Highlighting</span>
+                <span class="toggle-text">{{ $t('Enable Highlighting') }}</span>
               </label>
               <small class="form-help"
-                >Highlight text as it is being read aloud.</small
+                >{{ $t('Highlight text as it is being read aloud.') }}</small
               >
             </div>
 
@@ -466,11 +484,55 @@
                   v-model="polyEnabled"
                 />
                 <span class="toggle-slider"></span>
-                <span class="toggle-text">Enable AWS Polly Voices</span>
+                <span class="toggle-text">{{ $t('Enable AWS Polly Voices') }}</span>
               </label>
               <small class="form-help"
-                >Use enhanced AWS Polly voices (for manual licenses only).</small
+                >{{ $t('Use enhanced AWS Polly voices (for manual licenses only).') }}</small
               >
+            </div>
+
+            <!-- Default Voice Selection Per Language -->
+            <div
+              v-if="ttsEnabled && polyEnabled && license.type === 'manual' && voiceLanguages.length"
+              class="form-group voice-defaults-section"
+            >
+              <label class="form-label">{{ $t('Default Voices') }}</label>
+              <small class="form-help" style="margin-bottom: 0.75rem; display: block;">
+                {{ $t('Choose a default AWS Polly voice for each language.') }}
+              </small>
+
+              <div
+                v-for="lang in voiceLanguages"
+                :key="lang.code"
+                class="voice-default-row"
+              >
+                <span class="voice-lang-label">{{ lang.code }}<span v-if="lang._isBase" class="voice-base-tag">Base</span></span>
+                <select
+                  class="voice-select"
+                  :value="defaultVoices[lang.code] || ''"
+                  @change="defaultVoices[lang.code] = $event.target.value"
+                  :disabled="!(lang.code in availableVoicesMap) || !availableVoicesMap[lang.code]?.length"
+                >
+                  <option value="">{{ lang.code in availableVoicesMap ? (availableVoicesMap[lang.code]?.length ? $t('Use default') : $t('No Polly voices available')) : $t('Loading...') }}</option>
+                  <option
+                    v-for="voice in (availableVoicesMap[lang.code] || [])"
+                    :key="voice.id"
+                    :value="voice.id"
+                  >
+                    {{ $tDynamic(voice.name) }} ({{ $tDynamic(voice.gender) }}, {{ $tDynamic(voice.engine) }})
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  class="btn-voice-preview"
+                  :disabled="!defaultVoices[lang.code] || voicePreviewLoading[lang.code]"
+                  @click="previewVoice(lang.code, defaultVoices[lang.code])"
+                  :title="$t('Preview voice')"
+                >
+                  <span v-if="voicePreviewLoading[lang.code]" class="voice-preview-spinner"></span>
+                  <span v-else>&#9654;</span>
+                </button>
+              </div>
             </div>
           </template>
         </div>
@@ -479,7 +541,7 @@
       <!-- preview panel card -->
       <div class="overview-card preview-panel">
         <div class="card-header">
-          <h3 class="card-title">Preview</h3>
+          <h3 class="card-title">{{ $t('Preview') }}</h3>
         </div>
         <div class="card-content">
           <LivePreview
@@ -497,8 +559,8 @@
         @click="saveAllSettings"
         :disabled="isSaving"
       >
-        <span v-if="isSaving">Saving...</span>
-        <span v-else>Save</span>
+        <span v-if="isSaving">{{ $t('Saving...') }}</span>
+        <span v-else>{{ $t('Save') }}</span>
       </button>
     </div>
   </div>
@@ -513,7 +575,9 @@ import "@mcistudio/vue-colorpicker/dist/style.css"
 import SlideInNotification from "../SlideInNotification.vue"
 import Pencil from "vue-material-design-icons/Pencil.vue"
 import LivePreview from "./LivePreview.vue"
-import ManualColorInput from "./ManualColorInput.vue" 
+import ManualColorInput from "./ManualColorInput.vue"
+import api from "../../utils/api"
+import { config } from "../../config/environment"
 
 export default {
   name: "Customize",
@@ -592,6 +656,41 @@ export default {
     const ttsHighlighting = ref(true)
     const polyEnabled = ref(false)
 
+    // Default voice selection state
+    const defaultVoices = ref({}) // lang code -> voice ID
+    const availableVoicesMap = ref({}) // lang code -> voice list
+    const originalDefaultVoices = ref({}) // for dirty checking
+    const voicePreviewLoading = ref({}) // lang code -> boolean
+
+    const sampleTexts = {
+      'en-US': 'Hello, this is a sample of this voice.',
+      'es-MX': 'Hola, esta es una muestra de esta voz.',
+      'es-ES': 'Hola, esta es una muestra de esta voz.',
+      'fr-FR': 'Bonjour, ceci est un exemple de cette voix.',
+      'de-DE': 'Hallo, dies ist eine Probe dieser Stimme.',
+      'pt-BR': 'Olá, esta é uma amostra desta voz.',
+      'pt-PT': 'Olá, esta é uma amostra desta voz.',
+      'it-IT': 'Ciao, questo è un esempio di questa voce.',
+      'ja-JP': 'こんにちは、これはこの音声のサンプルです。',
+      'ko-KR': '안녕하세요, 이것은 이 목소리의 샘플입니다.',
+      'zh-CN': '你好，这是这个语音的示例。',
+      'ar-SA': 'مرحبًا، هذه عينة من هذا الصوت.',
+      'hi-IN': 'नमस्ते, यह इस आवाज़ का एक नमूना है।',
+      'nl-NL': 'Hallo, dit is een voorbeeld van deze stem.',
+      'pl-PL': 'Cześć, to jest próbka tego głosu.',
+      'ru-RU': 'Привет, это образец этого голоса.',
+      'sv-SE': 'Hej, det här är ett prov på den här rösten.',
+      'tr-TR': 'Merhaba, bu sesin bir örneğidir.',
+    }
+
+    // Helper: get localization from correct location (top-level or legacy colors.localization)
+    function getLocalization() {
+      const s = props.license?.settings
+      if (s?.localization?.default_language) return s.localization
+      if (s?.colors?.localization?.default_language) return s.colors.localization
+      return null
+    }
+
     const accentColorPicker = ref(null)
     const accentColorPickerKey = ref(0)
     const isAccentColorPickerOpen = ref(false)
@@ -648,6 +747,34 @@ export default {
         ttsEnabled.value = newSettings?.ttsEnabled ?? false
         ttsHighlighting.value = newSettings?.ttsHighlighting ?? true
         polyEnabled.value = newSettings?.polyEnabled ?? false
+
+        // Initialize default voices from languages
+        const langs = newSettings?.languages || []
+        const voiceMap = {}
+        // Base language default voice from localization.default_voice
+        const loc = getLocalization()
+        const baseLangCode = loc?.default_language || 'en-US'
+        const baseLangVoice = loc?.default_voice
+        if (baseLangCode && baseLangVoice) {
+          voiceMap[baseLangCode] = baseLangVoice
+        }
+        // Target language default voices
+        langs.forEach((lang) => {
+          if (lang.default_voice) {
+            voiceMap[lang.code] = lang.default_voice
+          }
+        })
+        defaultVoices.value = { ...voiceMap }
+        originalDefaultVoices.value = { ...voiceMap }
+
+        // Fetch available voices if polly is enabled
+        const allVoiceLangs = [...langs]
+        if (baseLangCode && !langs.find((l) => l.code === baseLangCode)) {
+          allVoiceLangs.push({ code: baseLangCode })
+        }
+        if (polyEnabled.value && allVoiceLangs.length) {
+          fetchAllVoices(allVoiceLangs)
+        }
 
         // Initialize accent color
         if (colors && colors.accent_color) {
@@ -829,11 +956,36 @@ export default {
       return accentColorIsDirty
     })
 
+    const isVoicesDirty = computed(() => {
+      const current = defaultVoices.value
+      const original = originalDefaultVoices.value
+      const allCodes = new Set([...Object.keys(current), ...Object.keys(original)])
+      for (const code of allCodes) {
+        if ((current[code] || '') !== (original[code] || '')) return true
+      }
+      return false
+    })
+
+    const voiceLanguages = computed(() => {
+      const langs = []
+      const loc = getLocalization()
+      const baseLangCode = loc?.default_language || 'en-US'
+      langs.push({ code: baseLangCode, _isBase: true })
+      const targetLangs = props.license?.settings?.languages || []
+      targetLangs.forEach((lang) => {
+        if (lang.code !== baseLangCode) {
+          langs.push(lang)
+        }
+      })
+      return langs
+    })
+
     const isTtsDirty = computed(
       () =>
         originalSettings.value.ttsEnabled !== ttsEnabled.value ||
         originalSettings.value.ttsHighlighting !== ttsHighlighting.value ||
-        originalSettings.value.polyEnabled !== polyEnabled.value
+        originalSettings.value.polyEnabled !== polyEnabled.value ||
+        isVoicesDirty.value
     )
 
     /**
@@ -926,6 +1078,46 @@ export default {
       polyEnabled: polyEnabled.value,
     }))
 
+    async function fetchAllVoices(langs) {
+      const appApiUrl = config.appApiUrl
+      const promises = langs.map(async (lang) => {
+        try {
+          const response = await api.get(`${appApiUrl}tts/voices?language=${lang.code}`)
+          if (response.data.success && response.data.voices) {
+            availableVoicesMap.value[lang.code] = response.data.voices
+          }
+        } catch (err) {
+          console.error(`Failed to fetch voices for ${lang.code}:`, err)
+          availableVoicesMap.value[lang.code] = []
+        }
+      })
+      await Promise.all(promises)
+    }
+
+    async function previewVoice(langCode, voiceId) {
+      if (!voiceId) return
+      voicePreviewLoading.value[langCode] = true
+      try {
+        const appApiUrl = config.appApiUrl
+        const sampleText = sampleTexts[langCode] || sampleTexts['en-US']
+        const response = await api.post(`${appApiUrl}tts/speak`, {
+          license_key: props.license.license_key,
+          text: sampleText,
+          language: langCode,
+          voice_id: voiceId,
+          preview: true,
+        })
+        if (response.data.success && response.data.audio_url) {
+          const audio = new Audio(response.data.audio_url)
+          audio.play()
+        }
+      } catch (err) {
+        console.error(`Voice preview failed for ${langCode}:`, err)
+      } finally {
+        voicePreviewLoading.value[langCode] = false
+      }
+    }
+
     // --- Methods ---
     function saveAllSettings() {
       if (displayMode.value === 'embedded' && (!cssSelector.value || !isCssSelectorValid.value)) {
@@ -977,10 +1169,38 @@ export default {
         payload.poly_enabled = polyEnabled.value
       }
 
+      // Save default voices
+      if (isVoicesDirty.value) {
+        if (!payload.settings) payload.settings = {}
+        const loc = getLocalization()
+        const baseLangCode = loc?.default_language || 'en-US'
+
+        // Base language voice → include in localization object with all existing fields
+        const baseVoice = defaultVoices.value[baseLangCode] || null
+        payload.settings.localization = {
+          ...(loc || {}),
+          default_voice: baseVoice,
+        }
+
+        // Target language voices → languages[].default_voice
+        if (props.license.settings?.languages) {
+          payload.settings.languages = props.license.settings.languages.map((lang) => {
+            const voice = defaultVoices.value[lang.code]
+            if (voice) {
+              return { ...lang, default_voice: voice }
+            }
+            const { default_voice, ...rest } = lang
+            return rest
+          })
+        }
+      }
+
       licenseStore
         .updateLicenseSettings(payload)
         .then((response) => {
           emit("setting-saved", response.data.data)
+          // Update original default voices so dirty flag resets
+          originalDefaultVoices.value = { ...defaultVoices.value }
           successMessage.value = "Settings saved successfully!"
           showSuccessNotification.value = true
           setTimeout(() => (showSuccessNotification.value = false), 3000)
@@ -1012,6 +1232,19 @@ export default {
         }
       }
     }
+
+    // When polyEnabled turns on, fetch voices for all languages including base
+    watch(polyEnabled, (newVal) => {
+      if (newVal) {
+        const langs = [...(props.license.settings?.languages || [])]
+        const loc = getLocalization()
+        const baseLangCode = loc?.default_language || 'en-US'
+        if (!langs.find((l) => l.code === baseLangCode)) {
+          langs.push({ code: baseLangCode })
+        }
+        if (langs.length) fetchAllVoices(langs)
+      }
+    })
 
     // Watch for the picker closing
     watch(isAccentColorPickerOpen, (isOpen) => {
@@ -1142,6 +1375,12 @@ export default {
       ttsEnabled,
       ttsHighlighting,
       polyEnabled,
+      defaultVoices,
+      availableVoicesMap,
+      voicePreviewLoading,
+      isVoicesDirty,
+      voiceLanguages,
+      previewVoice,
       accentColor,
       // accentTextColor,
       isAccentColorPickerOpen,
@@ -1171,6 +1410,80 @@ export default {
 </script>
 
 <style scoped>
+/* Free Tier Banner */
+.free-tier-banner {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.banner-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.banner-icon svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-text h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.banner-text p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.banner-note {
+  margin-top: 0.35rem !important;
+  font-size: 0.8rem !important;
+}
+
+.banner-btn {
+  white-space: nowrap;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  color: white;
+}
+
+.banner-btn:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 .display-settings-card{
   margin-top: 40px;
 }
@@ -1193,7 +1506,7 @@ export default {
 .reset-settings-btn {
   position: absolute;
   top: 10px;
-  right: 5px;
+  right: 16px;
 }
 .overview-card {
   display: flex;
@@ -1589,5 +1902,87 @@ export default {
 .btn-sm {
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
+}
+
+/* Voice Defaults Section */
+.voice-defaults-section {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.voice-default-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.voice-lang-label {
+  min-width: 100px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.voice-base-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-color, #6366f1);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.voice-select {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 6px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.btn-voice-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 6px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.btn-voice-preview:hover:not(:disabled) {
+  background: var(--bg-secondary, #f3f4f6);
+}
+
+.btn-voice-preview:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.voice-preview-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color, #d1d5db);
+  border-top-color: var(--accent-color, #6366f1);
+  border-radius: 50%;
+  animation: voice-spin 0.6s linear infinite;
+}
+
+@keyframes voice-spin {
+  to { transform: rotate(360deg); }
 }
 </style>

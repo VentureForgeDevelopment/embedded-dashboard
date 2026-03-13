@@ -21,12 +21,12 @@
         ]"
         @click="selectDomain()"
       >
-        <span v-if="!initialOnboardComplete">Continue to Language Selection</span>
-        <span v-else>Save</span>
+        <span v-if="!initialOnboardComplete">{{ $t('Continue to Language Selection') }}</span>
+        <span v-else>{{ $t('Save') }}</span>
       </button>
     </div>
     <div v-if="v$.domainValue.$error" class="validation-error-message">
-      {{ v$.domainValue.$errors[0]?.$message || 'Please enter a valid website address.' }}
+      {{ v$.domainValue.$errors[0]?.$message || $t('Please enter a valid website address.') }}
     </div>
   </div>
 </template>

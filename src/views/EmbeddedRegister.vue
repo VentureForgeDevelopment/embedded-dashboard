@@ -2,21 +2,21 @@
   <div class="registration-layout">
     <WalkthroughContainer 
       mode="static"
-      :static-steps="['Create Your Account', 'Choose Your Language', 'Activate Translation']"
+      :static-steps="[$t('Create Your Account'), $t('Choose Your Language'), $t('Activate Translation')]"
       :current-static-step-index="0"
     />
     <div class="form-container">
-      <h3>Create an account to prepare your website for translation</h3>
-      <p>You’ll add your site and choose your language next.</p>
+      <h3>{{ $t('Create an account to prepare your website for translation') }}</h3>
+      <p>{{ $t("You'll add your site and choose your language next.") }}</p>
       <p class="current-step-container">
-        Step 1 of 3: Create Your Account
+        {{ $t('Step 1 of 3: Create Your Account') }}
       </p>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
-          <label for="email">Email Address</label>
+          <label for="email">{{ $t('Email Address') }}</label>
           <input type="email" id="email" v-model="email" required autocomplete="email" />
           <p class="email-assurance-msg">
-            We’ll send your temp password. No spam.
+            {{ $t("We'll send your temp password. No spam.") }}
           </p>
         </div>
         <div v-if="errorMessage" class="error-message">
@@ -24,24 +24,24 @@
         </div>
         <div class="submit-box">
           <button type="submit" :disabled="isLoading">
-            {{ isLoading ? 'Creating Account...' : 'Continue to Setup' }}
+            {{ isLoading ? $t('Creating Account...') : $t('Continue to Setup') }}
           </button>
           <div class="license-agreement-cta">
             <div>
               <p class="next-steps">
-                <span style="font-weight:bold;">What happens next:</span> &#8226; Choose your first language, &#8226; Activate translation for
+                <span style="font-weight:bold;">{{ $t('What happens next:') }}</span> &#8226; {{ $t('Choose your first language,') }} &#8226; {{ $t('Activate translation for') }}
                 $1
               </p>
               <p>
-                By continuing, you agree to our
-                <a href="https://weblinguist.ai/license/" target="_blank">License Terms</a>.
+                {{ $t('By continuing, you agree to our') }}
+                <a href="https://weblinguist.ai/license/" target="_blank">{{ $t('License Terms') }}</a>.
               </p>
             </div>
           </div>
         </div>
       </form>
       <div class="toggle-link">
-        Already have an account? <a href="#" @click.prevent="$emit('switchToLogin')">Login here</a>
+        {{ $t('Already have an account?') }} <a href="#" @click.prevent="$emit('switchToLogin')">{{ $t('Login here') }}</a>
       </div>
     </div>
   </div>

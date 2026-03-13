@@ -7,13 +7,13 @@
     />
     <div class="payouts-wrapper">
       <div class="commission-balance-card">
-        <h2>Current Balance</h2>
+        <h2>{{ $t('Current Balance') }}</h2>
         <p class="subtitle-details">
-          Track your earnings and payout eligibility
+          {{ $t('Track your earnings and payout eligibility') }}
         </p>
         <div class="balance-amount">
           <div>
-            <p>Available Balance</p>
+            <p>{{ $t('Available Balance') }}</p>
             <span class="payout-balance"
               >${{ parseFloat(availableCommission).toFixed(2) }}</span
             >
@@ -21,7 +21,7 @@
           <div>
             <div class="payout-balance-icon">
               <WalletOutline
-                size="34"
+                size=34
                 fill-color="var(--success-green)"
                 style="
                   display: inline-flex;
@@ -44,11 +44,10 @@
             ></div>
           </div>
           <p v-if="!canRequestPayout && !isEligibleButNoEmail" class="progress-text">
-            You're ${{ 100 - parseFloat(availableCommission).toFixed(2) }} away
-            from your minimum payout.
+            {{ $t("You're") }} ${{ 100 - parseFloat(availableCommission).toFixed(2) }} {{ $t('away from your minimum payout.') }}
           </p>
           <p v-else class="progress-text">
-            You've reached the minimum payout amount!
+            {{ $t("You've reached the minimum payout amount!") }}
           </p>
           <button
             @click="requestPayout"
@@ -60,22 +59,22 @@
               { 'btn-disabled': !canRequestPayout },
             ]"
           >
-            Request Payout
+            {{ $t('Request Payout') }}
           </button>
           <p v-if="isEligibleButNoEmail" class="payout-warning">
-            Please add your PayPal email below to request a payout.
+            {{ $t('Please add your PayPal email below to request a payout.') }}
           </p>
           <span class="payout-btn-details subtitle-details">
-            Payouts are processed within 5-7 business days.
+            {{ $t('Payouts are processed within 5-7 business days.') }}
           </span>
         </div>
       </div>
 
       <div class="payout-history-card">
-        <h2>Payout History</h2>
+        <h2>{{ $t('Payout History') }}</h2>
         <span class="subtitle-details">
           <p>
-            Total Paid Out
+            {{ $t('Total Paid Out') }}
             <span class="payout-balance"
               >${{ parseFloat(totalPaidOut).toFixed(2) }}</span
             >
@@ -99,17 +98,15 @@
           </div>
         </div>
         <div v-else class="no-payouts-message">
-          No payouts yet.
-          <router-link to="/referrals">Start earning</router-link> by inviting
-          friends.
+          {{ $t('No payouts yet.') }}
+          <router-link to="/referrals">{{ $t('Start earning') }}</router-link> {{ $t('by inviting friends.') }}
         </div>
       </div>
     </div>
     <div class="paypal-email-card">
-      <h2>PayPal Email</h2>
+      <h2>{{ $t('PayPal Email') }}</h2>
       <p class="subtitle-details">
-        Your earnings will be sent to your PayPal account. Please ensure your
-        PayPal email is correct.
+        {{ $t('Your earnings will be sent to your PayPal account. Please ensure your PayPal email is correct.') }}
       </p>
       <div class="paypal-input-wrapper">
         <input
@@ -117,7 +114,7 @@
           v-model="paypalEmail"
           @blur="v$.paypalEmail.$touch()"
           :class="{ 'is-invalid': v$.paypalEmail.$error }"
-          placeholder="Enter your PayPal email"
+          :placeholder="$t('Enter your PayPal email')"
         />
         <div v-if="v$.paypalEmail.$error" class="validation-error-message">
           {{ v$.paypalEmail.$errors[0]?.$message }}
@@ -129,7 +126,7 @@
         :disabled="isLoading || v$.paypalEmail.$invalid"
         :class="['btn', 'btn-primary', { 'btn-disabled': v$.paypalEmail.$invalid }]"
       >
-        {{ isLoading ? "Saving..." : "Save PayPal Email" }}
+        {{ isLoading ? $t("Saving...") : $t("Save PayPal Email") }}
       </button>
     </div>
   </div>

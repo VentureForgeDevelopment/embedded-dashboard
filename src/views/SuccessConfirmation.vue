@@ -20,11 +20,11 @@
           :shouldDestroyAfterDone="true"
         />
       </div>
-      <h1 class="title">{{ copy.title }}</h1>
-      <p class="subtitle">{{ copy.subtitle }}</p>
-      <p class="description">{{ copy.description }}</p>
+      <h1 class="title">{{ $t(copy.title) }}</h1>
+      <p class="subtitle">{{ $t(copy.subtitle) }}</p>
+      <p class="description">{{ $t(copy.description) }}</p>
       <button class="btn btn-primary action-button" @click="pushToNextPage">
-        {{ copy.buttonText }}
+        {{ $t(copy.buttonText) }}
       </button>
     </div>
   </div>

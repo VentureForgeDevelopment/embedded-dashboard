@@ -4,20 +4,20 @@
       <div v-if="!lock_billing_term && !isFreeTierSelected" class="billing-term-wrapper">
         <!-- months:false / years:true -->
         <div>
-          <span class="interval" style="margin: 0 5px">Monthly</span>
+          <span class="interval" style="margin: 0 5px">{{ $t('Monthly') }}</span>
           <LlSwitch
             v-model="billing_term"
             name="billing_term"
             id="billing_term"
             big
           />
-          <span class="interval" style="margin: 0 5px">Yearly</span>
+          <span class="interval" style="margin: 0 5px">{{ $t('Yearly') }}</span>
         </div>
       </div>
       <div class="enterprise-plan-cta">
         <p>
-          Discover how Web Linguist can deliver secure, scalable, and compliant translation solutions tailored to your organization’s global growth.
-          <a href="https://weblinguist.ai/specialist/" target="_blank">Connect with a specialist</a>
+          {{ $t("Discover how Web Linguist can deliver secure, scalable, and compliant translation solutions tailored to your organization's global growth.") }}
+          <a href="https://weblinguist.ai/specialist/" target="_blank">{{ $t('Connect with a specialist') }}</a>
         </p>
       </div>
     </div>
@@ -31,7 +31,7 @@
       <WalkthroughContainer
         v-if="!initialOnboardComplete && isEmbedded"
         mode="static"
-        :static-steps="['Create Your Account', 'Choose Your Language', 'Activate Translation']" 
+        :static-steps="[$t('Create Your Account'), $t('Choose Your Language'), $t('Activate Translation')]"
         :current-static-step-index="1"
       />
       <WalkthroughContainer v-else-if="!initialOnboardComplete" />
@@ -39,7 +39,7 @@
 
         <div v-if="current_subscription_product" class="section-container current-plan-container">
           <div class="section-title">
-            <span>Current Plan: {{ current_subscription_product.name }}</span>
+            <span>{{ $t('Current Plan:') }} {{ current_subscription_product.name }}</span>
             <!-- <details class="features-dropdown">
               <summary>View Features</summary>
               <ul class="features-list">
@@ -50,9 +50,9 @@
         </div>
 
         <div v-if="!initialOnboardComplete" class="onboard-step-header">
-          <p class="step-description">Step 2 of 3</p> 
-          <p>You can update your site address or add more languages later. We’ll scan your site to prepare translations.</p>
-          <p>Nothing will change until you install the translator.</p>
+          <p class="step-description">{{ $t('Step 2 of 3') }}</p>
+          <p>{{ $t("You can update your site address or add more languages later. We'll scan your site to prepare translations.") }}</p>
+          <p>{{ $t('Nothing will change until you install the translator.') }}</p>
         </div>
 
         <div
@@ -73,8 +73,8 @@
             <p 
               class="section-title-text"
             >
-              <span v-if="current_subscription_product">Select A New Plan</span>
-              <span v-else>Select a Plan</span>
+              <span v-if="current_subscription_product">{{ $t('Select A New Plan') }}</span>
+              <span v-else>{{ $t('Select a Plan') }}</span>
 
               <CheckCircleIcon 
                 v-if="currentSelectedProduct"
@@ -110,7 +110,7 @@
           <div class="section-content products-wrapper">
             <div v-if="loading.checkout_products || loading.subscriptions" class="loading-container">
               <span class="loading-spinner"></span>
-              <p>Loading products...</p>
+              <p>{{ $t('Loading products...') }}</p>
             </div>
             <CheckoutProduct
               v-for="product in visibleProducts"
@@ -139,8 +139,8 @@
         <div class="domain-input-wrapper">
           <label for="domain_input" class="section-title">
             <p class="section-title-text">
-              <span v-if="current_subscription_product">Website Address</span>
-              <span v-else>Add Your Website Address</span>
+              <span v-if="current_subscription_product">{{ $t('Website Address') }}</span>
+              <span v-else>{{ $t('Add Your Website Address') }}</span>
 
               <CheckCircleIcon
                 v-if="domain && selected_domain"
@@ -196,9 +196,9 @@
         <div>
           <label for="language_select" class="section-title">
             <p class="section-title-text">
-              <span v-if="current_subscription_product">Adjust Translations</span>
-              <span v-else-if="!current_subscription_product && !initialOnboardComplete">Choose Your First Language</span>
-              <span v-else>Select Translations</span>
+              <span v-if="current_subscription_product">{{ $t('Adjust Translations') }}</span>
+              <span v-else-if="!current_subscription_product && !initialOnboardComplete">{{ $t('Choose Your First Language') }}</span>
+              <span v-else>{{ $t('Select Translations') }}</span>
 
               <CheckCircleIcon
                 v-if="languages_saved"
@@ -239,7 +239,7 @@
         </div>
 
         <p v-if="selected_domain" class="checkout-page-assurance-msg">
-          Your translations will be prepared in the next step. <span v-if="!isEmbedded">You’ll install the translator before anything goes live.</span>
+          {{ $t('Your translations will be prepared in the next step.') }} <span v-if="!isEmbedded">{{ $t("You'll install the translator before anything goes live.") }}</span>
         </p>
       </div>
     </div>

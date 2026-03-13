@@ -160,8 +160,8 @@ onMounted(() => {
 <template>
   <div class="users-container padding max-1200">
     <div class="page-header">
-      <h2 class="page-title">Manage Users</h2>
-      <button @click="showAddUser = true" class="btn btn-primary" :disabled="loading">Add User</button>
+      <h2 class="page-title">{{ $t('Manage Users') }}</h2>
+      <button @click="showAddUser = true" class="btn btn-primary" :disabled="loading">{{ $t('Add User') }}</button>
     </div>
     
     <!-- Error Message -->
@@ -173,20 +173,20 @@ onMounted(() => {
     <!-- Users Table -->
     <div class="users-table">
       <div class="table-header">
-        <div class="table-cell">Name</div>
-        <div class="table-cell">Email</div>
-        <div class="table-cell">Role</div>
-        <div class="table-cell">Status</div>
-        <div class="table-cell">Last Login</div>
-        <div class="table-cell">Actions</div>
+        <div class="table-cell">{{ $t('Name') }}</div>
+        <div class="table-cell">{{ $t('Email') }}</div>
+        <div class="table-cell">{{ $t('Role') }}</div>
+        <div class="table-cell">{{ $t('Status') }}</div>
+        <div class="table-cell">{{ $t('Last Login') }}</div>
+        <div class="table-cell">{{ $t('Actions') }}</div>
       </div>
       
       <div v-if="loading" class="loading-row">
-        <div class="loading-message">Loading users...</div>
+        <div class="loading-message">{{ $t('Loading users...') }}</div>
       </div>
       
       <div v-else-if="users.length === 0" class="empty-row">
-        <div class="empty-message">No users found</div>
+        <div class="empty-message">{{ $t('No users found') }}</div>
       </div>
       
       <div v-else v-for="user in users" :key="user.id" class="table-row">
@@ -201,13 +201,13 @@ onMounted(() => {
           <span class="role-badge" :class="user.account_role?.toLowerCase().replace(' ', '-')">{{ user.account_role }}</span>
         </div>
         <div class="table-cell" data-label="Status">
-          <span class="status-badge active">Active</span>
+          <span class="status-badge active">{{ $t('Active') }}</span>
         </div>
         <div class="table-cell" data-label="Last Login">{{ formatDate(user.updated_at) }}</div>
         <div class="table-cell" data-label="Actions">
           <div class="action-buttons">
-            <button class="btn-action" @click="editUser(user)" :disabled="loading">Edit</button>
-            <button class="btn-action danger" @click="deleteUser(user.id)" :disabled="loading">Remove</button>
+            <button class="btn-action" @click="editUser(user)" :disabled="loading">{{ $t('Edit') }}</button>
+            <button class="btn-action danger" @click="deleteUser(user.id)" :disabled="loading">{{ $t('Remove') }}</button>
           </div>
         </div>
       </div>
@@ -217,7 +217,7 @@ onMounted(() => {
     <div v-if="showAddUser" class="modal-overlay" @click="showAddUser = false">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Add User to Account</h3>
+          <h3>{{ $t('Add User to Account') }}</h3>
           <button @click="showAddUser = false" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
@@ -229,30 +229,30 @@ onMounted(() => {
           
           <form @submit.prevent="addUser">
             <div class="form-group">
-              <label>Name</label>
+              <label>{{ $t('Name') }}</label>
               <input v-model="newUser.name" type="text" class="form-input" required />
             </div>
             <div class="form-group">
-              <label>Email</label>
+              <label>{{ $t('Email') }}</label>
               <input v-model="newUser.email" type="email" class="form-input" required />
             </div>
             <div class="form-group">
-              <label>Password <span class="help-text">(required for new users only)</span></label>
+              <label>{{ $t('Password') }} <span class="help-text">{{ $t('(required for new users only)') }}</span></label>
               <input v-model="newUser.password" type="password" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Role</label>
+              <label>{{ $t('Role') }}</label>
               <select v-model="newUser.account_role" class="form-input">
-                <option value="Owner">Owner</option>
-                <option value="User">User</option>
-                <option value="Read Only">Read Only</option>
+                <option value="Owner">{{ $t('Owner') }}</option>
+                <option value="User">{{ $t('User') }}</option>
+                <option value="Read Only">{{ $t('Read Only') }}</option>
               </select>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button @click="cancelAdd" class="btn btn-secondary" :disabled="loading">Cancel</button>
-          <button @click="addUser" class="btn btn-primary" :disabled="loading">{{ loading ? 'Adding...' : 'Add User' }}</button>
+          <button @click="cancelAdd" class="btn btn-secondary" :disabled="loading">{{ $t('Cancel') }}</button>
+          <button @click="addUser" class="btn btn-primary" :disabled="loading">{{ loading ? $t('Adding...') : $t('Add User') }}</button>
         </div>
       </div>
     </div>
@@ -261,7 +261,7 @@ onMounted(() => {
     <div v-if="showEditUser" class="modal-overlay" @click="cancelEdit">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>Edit User</h3>
+          <h3>{{ $t('Edit User') }}</h3>
           <button @click="cancelEdit" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">
@@ -273,26 +273,26 @@ onMounted(() => {
           
           <form @submit.prevent="updateUser">
             <div class="form-group">
-              <label>Name</label>
+              <label>{{ $t('Name') }}</label>
               <input v-model="editingUser.name" type="text" class="form-input" required />
             </div>
             <div class="form-group">
-              <label>Email</label>
+              <label>{{ $t('Email') }}</label>
               <input v-model="editingUser.email" type="email" class="form-input" required />
             </div>
             <div class="form-group">
-              <label>Role</label>
+              <label>{{ $t('Role') }}</label>
               <select v-model="editingUser.account_role" class="form-input">
-                <option value="Owner">Owner</option>
-                <option value="User">User</option>
-                <option value="Read Only">Read Only</option>
+                <option value="Owner">{{ $t('Owner') }}</option>
+                <option value="User">{{ $t('User') }}</option>
+                <option value="Read Only">{{ $t('Read Only') }}</option>
               </select>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button @click="cancelEdit" class="btn btn-secondary" :disabled="loading">Cancel</button>
-          <button @click="updateUser" class="btn btn-primary" :disabled="loading">{{ loading ? 'Updating...' : 'Update User' }}</button>
+          <button @click="cancelEdit" class="btn btn-secondary" :disabled="loading">{{ $t('Cancel') }}</button>
+          <button @click="updateUser" class="btn btn-primary" :disabled="loading">{{ loading ? $t('Updating...') : $t('Update User') }}</button>
         </div>
       </div>
     </div>

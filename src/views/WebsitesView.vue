@@ -9,7 +9,6 @@ import { useRouter } from "vue-router"
 const authStore = useAuthStore()
 const licenseStore = useLicenseStore()
 const themeStore = useThemeStore()
-const websites = ref([])
 const error = ref(null)
 const selectedLicense = ref(null)
 const savedStates = ref({})
@@ -42,50 +41,56 @@ const formatDate = (dateString) => {
   return `${Math.floor(diffInHours / 24)} days ago`
 }
 
+// Derive websites from store state
+const websites = computed(() => {
+  const licenses = licenseStore.state.licenses
+  if (!licenses || licenses.length === 0) return []
+
+  return licenses.map((license) => {
+    const settings = license.settings || {}
+    const enabled = settings.enabled !== undefined ? settings.enabled : true
+
+    return {
+      id: license.id,
+      name: license.domain_name.replace(/^(https?:\/\/)/, ""),
+      status: (() => {
+        if (license.status === "active") {
+          return enabled ? "Active" : "Disabled"
+        } else {
+          return "Inactive"
+        }
+      })(),
+      product: license.product,
+      type: license.type,
+      languages: settings.languages || [{ code: "en", name: "English" }],
+      lastSync: formatDate(license.updated_at),
+      license_key: license.license_key,
+      settings: settings,
+      createdAt: license.created_at,
+      usage: license.usage || null,
+      isSaving: false,
+    }
+  })
+})
+
+const ringCircumference = 2 * Math.PI * 15.5
+
+function getRingOffset(usage) {
+  const pct = Math.min(usage?.usage_percentage ?? 0, 100)
+  return ringCircumference - (ringCircumference * pct) / 100
+}
+
 const pushToManageLicense = (licenseId) => {
   router.push({ name: "manage-license", params: { id: licenseId } })
 }
 
-// Fetch and map websites
+// Fetch licenses into the store (refresh)
 const fetchWebsites = () => {
-  licenseStore.getLicenses().then(() => {
-    if (licenseStore.state.licenses && licenseStore.state.licenses.length > 0) {
-      websites.value = licenseStore.state.licenses.map((license) => {
-        const settings = license.settings || {}
-        // Ensure TTS settings have defaults within the settings object
-        if (settings.enabled === undefined) {
-          settings.enabled = true
-        }
-        if (settings.ttsEnabled === undefined) {
-          settings.ttsEnabled = false
-        }
-        if (settings.ttsHighlighting === undefined) {
-          settings.ttsHighlighting = true
-        }
-
-        return {
-          id: license.id,
-          name: license.domain_name.replace(/^(https?:\/\/)/, ""),
-          status: (() => {
-            if (license.status === "active") {
-              return settings.enabled ? "Active" : "Disabled"
-            } else {
-              return "Inactive"
-            }
-          })(),
-          product: license.product,
-          type: license.type,
-          languages: settings.languages || [{ code: "en", name: "English" }],
-          lastSync: formatDate(license.updated_at),
-          license_key: license.license_key,
-          settings: settings,
-          createdAt: license.created_at,
-          isSaving: false,
-        }
-      })
-    }
+  licenseStore.getLicenses().catch((err) => {
+    error.value = err.message || "Failed to load websites"
   })
 }
+
 // Watch for account changes and refetch data
 watch(
   () => authStore.currentAccountId,
@@ -132,20 +137,20 @@ onMounted(() => {
 <template>
   <div class="websites-container max-1200 padding">
     <div class="page-header">
-      <h2 class="page-title">Websites</h2>
+      <h2 class="page-title">{{ $t('Websites') }}</h2>
       <button
         v-if="!isEmbedded"
         class="btn btn-primary create-license-btn"
         @click="pushToCheckoutPage"
       >
-        + Add Website
+        {{ $t('+ Add Website') }}
       </button>
     </div>
 
     <!-- Loading Overlay -->
     <div v-if="isSaving" class="loading-overlay">
       <div class="loading-spinner"></div>
-      <p>Saving...</p>
+      <p>{{ $t('Saving...') }}</p>
     </div>
 
     <!-- Success Notification -->
@@ -164,16 +169,16 @@ onMounted(() => {
     <!-- Loading State -->
     <div v-if="loading && websites.length === 0" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Loading websites...</p>
+      <p>{{ $t('Loading websites...') }}</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
       <div class="error-message">
-        <h3>Error Loading Websites</h3>
+        <h3>{{ $t('Error Loading Websites') }}</h3>
         <p>{{ error }}</p>
         <button class="btn btn-primary" @click="fetchWebsites">
-          Try Again
+          {{ $t('Try Again') }}
         </button>
       </div>
     </div>
@@ -181,10 +186,10 @@ onMounted(() => {
     <!-- Empty State -->
     <div v-else-if="websites.length === 0" class="empty-container">
       <div class="empty-message">
-        <h3>No Websites Found</h3>
-        <p>You haven't added any websites yet.</p>
+        <h3>{{ $t('No Websites Found') }}</h3>
+        <p>{{ $t("You haven't added any websites yet.") }}</p>
         <button class="btn btn-primary" @click="pushToCheckoutPage">
-          Add Your First Website
+          {{ $t('Add Your First Website') }}
         </button>
       </div>
     </div>
@@ -202,7 +207,7 @@ onMounted(() => {
           <h3 class="website-name">{{ website.name }}</h3>
           <div class="website-badges">
             <span v-if="website.type === 'free'" class="website-badge free-tier">
-              Free Plan
+              {{ $t('Free Plan') }}
             </span>
             <span class="website-status" :class="website.status.toLowerCase()">{{
               website.status
@@ -211,20 +216,38 @@ onMounted(() => {
         </div>
         <div class="website-meta">
           <div class="meta-item">
-            <span class="meta-label">Languages:</span>
+            <span class="meta-label">{{ $t('Languages:') }}</span>
             <span class="meta-value">{{
               website.languages.map((l) => l.name).join(", ")
             }}</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Last Updated:</span>
+            <span class="meta-label">{{ $t('Last Updated:') }}</span>
             <span class="meta-value">{{ website.lastSync }}</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">License Key:</span>
+            <span class="meta-label">{{ $t('License Key:') }}</span>
             <span class="meta-value license-key"
               >{{ website.license_key.substring(0, 8) }}...</span
             >
+          </div>
+        </div>
+        <div v-if="website.usage" class="website-usage-footer">
+          <div class="usage-ring-wrapper">
+            <svg class="usage-ring" viewBox="0 0 36 36">
+              <circle class="usage-ring-bg" cx="18" cy="18" r="15.5" />
+              <circle
+                class="usage-ring-fill"
+                cx="18" cy="18" r="15.5"
+                :stroke-dasharray="ringCircumference"
+                :stroke-dashoffset="getRingOffset(website.usage)"
+              />
+            </svg>
+            <span class="usage-ring-text">{{ Math.round(website.usage.usage_percentage ?? 0) }}%</span>
+          </div>
+          <div class="usage-footer-info">
+            <span class="usage-footer-value">{{ (website.usage.words_translated ?? 0).toLocaleString() }} {{ $t('words') }}</span>
+            <span class="usage-footer-label">{{ $t('translated this period') }}</span>
           </div>
         </div>
       </div>
@@ -387,7 +410,7 @@ onMounted(() => {
 }
 
 .website-meta {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .meta-item {
@@ -499,5 +522,64 @@ onMounted(() => {
 
 .btn:hover {
   transform: translateY(-1px);
+}
+
+/* Usage Footer */
+.website-usage-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.875rem;
+  margin-top: 0.875rem;
+  border-top: 1px solid #e5e7eb;
+}
+.usage-ring-wrapper {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+.usage-ring {
+  width: 38px;
+  height: 38px;
+  transform: rotate(-90deg);
+}
+.usage-ring-bg {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 3;
+}
+.usage-ring-fill {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+.usage-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.usage-footer-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.usage-footer-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+}
+.usage-footer-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: left;
 }
 </style>

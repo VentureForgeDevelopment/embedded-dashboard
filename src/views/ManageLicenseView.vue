@@ -3,28 +3,27 @@
     <!-- Loading State -->
     <div v-if="loading && !license" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Loading license details...</p>
+      <p>{{ $t('Loading license details...') }}</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
       <div class="error-message">
-        <h3>Error Loading License</h3>
+        <h3>{{ $t('Error Loading License') }}</h3>
         <p>{{ error }}</p>
-        <button class="btn btn-primary" @click="fetchLicense">Try Again</button>
+        <button class="btn btn-primary" @click="fetchLicense">{{ $t('Try Again') }}</button>
       </div>
     </div>
 
     <!-- License Not Found -->
     <div v-else-if="!license && !loading" class="not-found-container">
       <div class="not-found-message">
-        <h3>License Not Found</h3>
+        <h3>{{ $t('License Not Found') }}</h3>
         <p>
-          The requested license could not be found or you don't have access to
-          it.
+          {{ $t("The requested license could not be found or you don't have access to it.") }}
         </p>
         <router-link to="/websites" class="btn btn-primary"
-          >Back to Websites</router-link
+          >{{ $t('Back to Websites') }}</router-link
         >
       </div>
     </div>
@@ -36,7 +35,7 @@
         <div class="header-content">
           <div v-if="!isEmbedded" class="breadcrumb">
             <router-link to="/websites" class="breadcrumb-link"
-              >Websites</router-link
+              >{{ $t('Websites') }}</router-link
             >
             <span class="breadcrumb-separator">/</span>
             <router-link
@@ -51,7 +50,7 @@
               <span
                 v-if="isFree"
                 class="status-badge free-tier"
-                >Free Plan</span
+                >{{ $t('Free Plan') }}</span
               >
               <span
                 class="status-badge"
@@ -81,14 +80,14 @@
                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
               ></path>
             </svg>
-            {{ copiedHeaderScript ? "Copied!" : "Copy Installation Script" }}
+            {{ copiedHeaderScript ? $t("Copied!") : $t("Copy Installation Script") }}
           </button>
           <a
             href="https://weblinguist.ai/wp-content/uploads/2025/12/Web-Linguist-Quick-Start-Guide-v1.pdf"
             target="_blank"
             class="btn btn-outline"
           >
-            Quick Start Guide
+            {{ $t('Quick Start Guide') }}
           </a>
         </div>
       </div>
@@ -100,42 +99,42 @@
           :class="{ active: activeTab === 'general' }"
           @click="navigateToGeneralTab"
         >
-          General
+          {{ $t('General') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'customize' }"
           @click="navigateToCustomizeTab"
         >
-          Customize
+          {{ $t('Customize') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'translation_management' }"
           @click="navigateToGlossaryTab"
         >
-          Glossary
+          {{ $t('Glossary') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'sitemap' }"
           @click="navigateToSitemapTab"
         >
-          Sitemap
+          {{ $t('Sitemap') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'localization' }"
           @click="navigateToLocalizationTab"
         >
-          Localization
+          {{ $t('Localization') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'analytics' }"
           @click="navigateToAnalyticsTab"
         >
-          Analytics
+          {{ $t('Analytics') }}
         </button>
       </div>
 
@@ -150,10 +149,11 @@
               </svg>
             </div>
             <div class="banner-text">
-              <h4>You're on the Free Plan</h4>
-              <p>Upgrade to unlock more languages, glossary management, and more premium features.</p>
+              <h4>{{ $t("You're on the Free Plan") }}</h4>
+              <p>{{ $t('Upgrade to unlock more languages, glossary management, and more premium features.') }}</p>
+              <p class="banner-note">{{ $t('Upgrading also removes the "Powered by Web Linguist" link from your toolbar.') }}</p>
             </div>
-            <button @click="goToCheckoutUpgrade(license.id)" class="btn btn-primary banner-btn">Upgrade Now</button>
+            <button @click="goToCheckoutUpgrade(license.id)" class="btn btn-primary banner-btn">{{ $t('Upgrade Now') }}</button>
           </div>
         </div>
 
@@ -170,7 +170,7 @@
           <!-- Loading Overlay for updates -->
           <div v-if="isSaving" class="loading-overlay">
             <div class="loading-spinner"></div>
-            <p>Saving...</p>
+            <p>{{ $t('Saving...') }}</p>
           </div>
 
           <!-- notifications -->
@@ -189,13 +189,13 @@
             <!-- Domain card -->
             <div v-show="!isEmbedded" class="overview-card">
               <div class="card-header">
-                <h3 class="card-title">Domain</h3>
+                <h3 class="card-title">{{ $t('Domain') }}</h3>
                 <button
                   class="btn btn-small"
                   @click="updateDomain(license.name)"
                 >
-                  <span v-if="isSaving"> Saving... </span>
-                  <span v-else>Update Domain</span>
+                  <span v-if="isSaving"> {{ $t('Saving...') }} </span>
+                  <span v-else>{{ $t('Update Domain') }}</span>
                 </button>
               </div>
               <div class="card-content">
@@ -216,12 +216,12 @@
             <!-- Languages Card -->
             <div class="overview-card">
               <div class="card-header">
-                <h3 class="card-title">Languages</h3>
+                <h3 class="card-title">{{ $t('Languages') }}</h3>
                 <button
                   class="btn btn-small"
                   @click="openLanguageSettingsModal"
                 >
-                  Edit
+                  {{ $t('Edit') }}
                 </button>
               </div>
               <div class="card-content">
@@ -235,8 +235,7 @@
                   </span>
                 </div>
                 <div class="language-count">
-                  {{ license.languages.length }} / {{ languageLimit }} languages
-                  selected
+                  {{ license.languages.length }} / {{ languageLimit }} {{ $t('languages selected') }}
                 </div>
               </div>
             </div>
@@ -244,7 +243,7 @@
             <!-- Status Card -->
             <div class="overview-card">
               <div class="card-header">
-                <h3 class="card-title">License Status</h3>
+                <h3 class="card-title">{{ $t('License Status') }}</h3>
                 <span
                   class="status-badge"
                   :class="license.status.toLowerCase()"
@@ -254,7 +253,7 @@
               <div class="card-content">
                 <div class="status-info">
                   <div class="status-item">
-                    <span class="status-label">Enable:</span>
+                    <span class="status-label">{{ $t('Enable:') }}</span>
                     <label class="toggle-label" @click.stop>
                       <input
                         type="checkbox"
@@ -267,13 +266,13 @@
                     </label>
                   </div>
                   <div class="status-item">
-                    <span class="status-label">Created:</span>
+                    <span class="status-label">{{ $t('Created:') }}</span>
                     <span class="status-value">{{
                       formatDate(license.createdAt)
                     }}</span>
                   </div>
                   <div class="status-item">
-                    <span class="status-label">Last Updated:</span>
+                    <span class="status-label">{{ $t('Last Updated:') }}</span>
                     <span class="status-value">{{ license.lastSync }}</span>
                   </div>
                 </div>
@@ -283,13 +282,13 @@
             <!-- License Key Card -->
             <div class="overview-card">
               <div class="card-header">
-                <h3 class="card-title">License Key</h3>
+                <h3 class="card-title">{{ $t('License Key') }}</h3>
                 <button
                   class="btn btn-small"
                   :class="{ 'btn-success': copiedKey }"
                   @click="copyLicenseKey"
                 >
-                  {{ copiedKey ? "Copied!" : "Copy" }}
+                  {{ copiedKey ? $t("Copied!") : $t("Copy") }}
                 </button>
               </div>
               <div class="card-content">
@@ -311,13 +310,13 @@
       <div v-if="activeTab === 'translation_management'" class="main-tab-pane">
         <UpgradePrompt
           v-if="isFree"
-          title="Translation Glossary"
-          description="Upgrade to control how specific terms are translated across your website with custom glossary rules."
+          :title="$t('Translation Glossary')"
+          :description="$t('Upgrade to control how specific terms are translated across your website with custom glossary rules.')"
           :features="[
-            'Exclude brand names from translation',
-            'Define custom term replacements',
-            'Language-specific translation rules',
-            'Global rules for all languages'
+            $t('Exclude brand names from translation'),
+            $t('Define custom term replacements'),
+            $t('Language-specific translation rules'),
+            $t('Global rules for all languages')
           ]"
           :upgrade-route="{ name: 'checkout', params: { type: 'upgrade-free', id: license.id } }"
         />
@@ -338,13 +337,13 @@
                   class="tab-pane"
                 >
                   <FeaturePlaceholder
-                    title="Per-Page Translation Customization"
-                    description="Customize translation behavior for specific pages on your website. Control which elements get translated, set page-specific glossary rules, and fine-tune the language experience for different sections of your site."
+                    :title="$t('Per-Page Translation Customization')"
+                    :description="$t('Customize translation behavior for specific pages on your website. Control which elements get translated, set page-specific glossary rules, and fine-tune the language experience for different sections of your site.')"
                     :features="[
-                      'Page-specific overrides',
-                      'Element inclusion/exclusion rules per page',
-                      'Visual translation editor lets you edit translations directly on your website',
-                      'Custom translation priorities',
+                      $t('Page-specific overrides'),
+                      $t('Element inclusion/exclusion rules per page'),
+                      $t('Visual translation editor lets you edit translations directly on your website'),
+                      $t('Custom translation priorities'),
                     ]"
                   />
                 </div>
@@ -358,13 +357,13 @@
        <div v-if="activeTab === 'sitemap'" class="main-tab-pane">
         <UpgradePrompt
           v-if="isFree"
-          title="Multilingual Sitemap"
-          description="Upgrade to generate SEO-optimized sitemaps with hreflang annotations for all your translated pages."
+          :title="$t('Multilingual Sitemap')"
+          :description="$t('Upgrade to generate SEO-optimized sitemaps with hreflang annotations for all your translated pages.')"
           :features="[
-            'Auto-generated multilingual sitemaps',
-            'Proper hreflang annotations',
-            'XML and HTML sitemap formats',
-            'Improved search engine indexing'
+            $t('Auto-generated multilingual sitemaps'),
+            $t('Proper hreflang annotations'),
+            $t('XML and HTML sitemap formats'),
+            $t('Improved search engine indexing')
           ]"
           :upgrade-route="{ name: 'checkout', params: { type: 'upgrade-free', id: license.id } }"
         />
@@ -373,8 +372,9 @@
 
        <!-- Localizations Tab -->
        <div v-if="activeTab === 'localization'" class="main-tab-pane">
-        <Localization 
+        <Localization
         :license="license"
+        @setting-saved="handleSettingSaved"
         />
        </div>
 
@@ -402,8 +402,6 @@ import { useThemeStore } from "../stores/theme"
 import { useLicenseStore } from "../stores/license"
 import LanguageSettingsModal from "../components/LanguageSettingsModal.vue"
 import DomainSelect from "../components/DomainSelect.vue"
-import api from "../utils/api"
-import { config } from "../config/environment"
 import GlossaryManager from "../components/GlossaryManager.vue"
 import SlideInNotification from "../components/SlideInNotification.vue"
 import Customize from "../components/License/Customize.vue"
@@ -569,7 +567,38 @@ watch(
   }
 )
 
-// Fetch license data
+/**
+ * Transform raw license API data into the UI-friendly shape used by this view.
+ */
+const transformLicense = (raw) => {
+  const settings = raw.settings || {}
+  if (settings.enabled === undefined) settings.enabled = true
+  if (settings.ttsEnabled === undefined) settings.ttsEnabled = false
+  if (settings.ttsHighlighting === undefined) settings.ttsHighlighting = true
+
+  return {
+    id: raw.id,
+    name: raw.domain_name,
+    status: (() => {
+      if (raw.status === "active") {
+        return settings.enabled ? "Active" : "Disabled"
+      }
+      return "Inactive"
+    })(),
+    product: raw.product,
+    languages: settings.languages || [{ code: "en", name: "English" }],
+    type: raw.type,
+    lastSync: formatDate(raw.updated_at),
+    license_key: raw.license_key,
+    settings: settings,
+    dns_check: raw.dns_check,
+    createdAt: raw.created_at,
+    scheduled_change: raw.scheduled_change || null,
+    subscription_id: raw.subscription_id || null,
+  }
+}
+
+// Fetch license data via store
 const fetchLicense = async () => {
   if (!authStore.currentAccountId) {
     const msg = "No account available. Please ensure you are logged in."
@@ -581,60 +610,22 @@ const fetchLicense = async () => {
   error.value = null
 
   try {
-    const response = await api.get(`${config?.appApiUrl}licenses/${licenseId.value}`, {
-      headers: {
-        "X-Account-ID": authStore.currentAccountId.toString(),
-      },
-    })
-
+    const response = await licenseStore.fetchLicenseById(licenseId.value)
     const result = response.data
 
     if (result.success) {
-      // Transform license data to match website format
-      const settings = result.license.settings || {}
-      if (settings.enabled === undefined) {
-        settings.enabled = true
-      }
-      // Ensure TTS settings have defaults within the settings object
-      if (settings.ttsEnabled === undefined) {
-        settings.ttsEnabled = false
-      }
-      if (settings.ttsHighlighting === undefined) {
-        settings.ttsHighlighting = true
-      }
-
       // Update store with DNS check data
-      licenseStore.state.dnsCheckData = result.license?.dns_check 
+      licenseStore.state.dnsCheckData = result.license?.dns_check
 
-      license.value = {
-        id: result.license.id,
-        name: result.license.domain_name,
-        status: (() => {
-          if (result.license.status === "active") {
-            return settings.enabled ? "Active" : "Disabled"
-          } else {
-            return "Inactive"
-          }
-        })(),
-        product: result.license.product,
-        languages: settings.languages || [{ code: "en", name: "English" }],
-        type: result.license.type,
-        lastSync: formatDate(result.license.updated_at),
-        license_key: result.license.license_key,
-        settings: settings,
-        dns_check: result.license.dns_check,
-        createdAt: result.license.created_at,
-        scheduled_change: result.license.scheduled_change || null,
-        subscription_id: result.license.subscription_id || null,
-      }
-      return response // Resolve the promise with the full response
+      license.value = transformLicense(result.license)
+      return response
     } else {
       throw new Error(result.error || "Failed to get license")
     }
   } catch (err) {
     console.error("Error getting license:", err)
     error.value = err.message
-    throw err // Re-throw the error to reject the promise
+    throw err
   } finally {
     loading.value = false
   }
@@ -773,42 +764,7 @@ const handleSettingsSave = async ({
     })
     .then((response) => {
       if (response.data && response.data.data && response.data.success) {
-        // Assuming response.data.data contains the full updated license object
-        // in the same format as result.license from fetchLicense.
-        // Re-apply the transformation logic to ensure consistency.
-        const updatedLicenseRaw = response.data.data
-        const updatedSettings = updatedLicenseRaw.settings || {}
-
-        // Ensure TTS settings have defaults within the settings object
-        if (updatedSettings.ttsEnabled === undefined) {
-          updatedSettings.ttsEnabled = false
-        }
-        if (updatedSettings.ttsHighlighting === undefined) {
-          updatedSettings.ttsHighlighting = true
-        }
-        // Assuming polyEnabled is also part of settings and needs default if not present
-        if (updatedSettings.polyEnabled === undefined) {
-          updatedSettings.polyEnabled = false // Or whatever default is appropriate
-        }
-
-        license.value = {
-          id: updatedLicenseRaw.id,
-          name: updatedLicenseRaw.domain_name,
-          status:
-            updatedLicenseRaw.status.charAt(0).toUpperCase() +
-            updatedLicenseRaw.status.slice(1),
-          product: updatedLicenseRaw.product,
-          languages: updatedSettings.languages || [
-            { code: "en", name: "English" },
-          ],
-          type: updatedLicenseRaw.type,
-          lastSync: formatDate(updatedLicenseRaw.updated_at),
-          license_key: updatedLicenseRaw.license_key,
-          settings: updatedSettings,
-          createdAt: updatedLicenseRaw.created_at,
-          scheduled_change: updatedLicenseRaw.scheduled_change || null,
-          subscription_id: updatedLicenseRaw.subscription_id || null,
-        }
+        license.value = transformLicense(response.data.data)
 
         // Show success notification
         successMessage.value = "Settings saved successfully!"
@@ -884,35 +840,7 @@ function updateDomain(domain) {
 }
 
 const handleSettingSaved = (updatedLicense) => {
-  const updatedSettings = updatedLicense.settings || {}
-
-  // Ensure TTS settings have defaults within the settings object
-  if (updatedSettings.ttsEnabled === undefined) {
-    updatedSettings.ttsEnabled = false
-  }
-  if (updatedSettings.ttsHighlighting === undefined) {
-    updatedSettings.ttsHighlighting = true
-  }
-  if (updatedSettings.polyEnabled === undefined) {
-    updatedSettings.polyEnabled = false
-  }
-
-  license.value = {
-    id: updatedLicense.id,
-    name: updatedLicense.domain_name,
-    status:
-      updatedLicense.status.charAt(0).toUpperCase() +
-      updatedLicense.status.slice(1),
-    product: updatedLicense.product,
-    languages: updatedSettings.languages || [{ code: "en", name: "English" }],
-    type: updatedLicense.type,
-    lastSync: formatDate(updatedLicense.updated_at),
-    license_key: updatedLicense.license_key,
-    settings: updatedSettings,
-    createdAt: updatedLicense.created_at,
-    scheduled_change: updatedLicense.scheduled_change || null,
-    subscription_id: updatedLicense.subscription_id || null,
-  }
+  license.value = transformLicense(updatedLicense)
 }
 
 // Load license data on mount
@@ -1075,6 +1003,11 @@ onMounted(() => {
   margin: 0;
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.banner-note {
+  margin-top: 0.35rem !important;
+  font-size: 0.8rem !important;
 }
 
 .banner-btn {

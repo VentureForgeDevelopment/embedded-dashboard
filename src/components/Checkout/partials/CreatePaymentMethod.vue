@@ -2,22 +2,22 @@
   <div :class="[from === 'settings' ? 'position-relative' : '']">
     <SlideInNotification
       :show="showSuccessNotification"
-      message="Payment method created successfully"
+      :message="$t('Payment method created successfully')"
       type="success"
     />
     <SlideInNotification
       :show="showFailNotification"
-      message="Failed to create payment method"
+      :message="$t('Failed to create payment method')"
       type="error"
     />
     <SlideInNotification
       :show="showGenericFailNotification"
-      message="An error occurred"
+      :message="$t('An error occurred')"
       type="error"
     />
     <div>
       <div>
-        <label for="name_on_card">Name on Card</label>
+        <label for="name_on_card">{{ $t('Name on Card') }}</label>
         <ll-input
           v-model="name_on_card"
           name="name_on_card"
@@ -41,7 +41,7 @@
         :stripe-key="publishable_key"
         :elements-options="finalElementsOptions"
       >
-        <label for="card_details">Card Details</label>
+        <label for="card_details">{{ $t('Card Details') }}</label>
         <StripeElement
           ref="cardRef"
           type="card"
@@ -55,8 +55,7 @@
         v-if="!initial_onboard_setup && from === 'finalize_checkout'"
         class="cc-assurance-msg"
       >
-        Your card is used to activate the trial. You can cancel anytime before
-        your next billing date.
+        {{ $t('Your card is used to activate the trial. You can cancel anytime before your next billing date.') }}
       </p>
 
       <br />
@@ -68,8 +67,8 @@
         @click.prevent="handleCreate"
         class="btn btn-primary"
       >
-        <span v-if="loading"> Loading... </span>
-        <span v-else> Submit </span>
+        <span v-if="loading"> {{ $t('Loading...') }} </span>
+        <span v-else> {{ $t('Submit') }} </span>
       </button>
 
       <button
@@ -86,10 +85,10 @@
         :disabled="!isCardReady"
       >
         <span v-if="plan_comparison === null && initial_onboard_setup">
-          Complete Purchase
+          {{ $t('Complete Purchase') }}
         </span>
-        <span v-else-if="!initial_onboard_setup && from == 'finalize_checkout'">Start My $1 Trial</span>
-        <span v-else> Confirm Changes </span>
+        <span v-else-if="!initial_onboard_setup && from == 'finalize_checkout'">{{ $t('Start My $1 Trial') }}</span>
+        <span v-else> {{ $t('Confirm Changes') }} </span>
       </button>
     </div>
 

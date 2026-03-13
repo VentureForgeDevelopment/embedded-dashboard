@@ -3,7 +3,7 @@
     <div class="selection-preview-card">
       <div class="selection-preview-card-top">
         <p>
-          {{ current_product?.name }}
+          {{ $t(current_product?.name === 'Starter' ? 'Standard' : current_product?.name) }}
         </p>
       </div>
       <ul class="selection-preview-card-features">
@@ -11,7 +11,7 @@
           v-for="currentProductFeature in currentProductFeatures"
           :key="currentProductFeature.id"
         >
-          {{ currentProductFeature }}
+          {{ $t(currentProductFeature) }}
         </li>
       </ul>
     </div>
@@ -23,7 +23,7 @@
     <div class="selection-preview-card">
       <div class="selection-preview-card-top">
         <p>
-          {{ selected_product?.name }}
+          {{ $t(selected_product?.name === 'Starter' ? 'Standard' : selected_product?.name) }}
         </p>
       </div>
 
@@ -60,7 +60,7 @@
                 />
               </svg>
             </span>
-            {{ selectedProductFeature }}
+            {{ $t(selectedProductFeature) }}
           </li>
         </ul>
       </div>

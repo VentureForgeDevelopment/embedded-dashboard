@@ -2,7 +2,7 @@
   <div v-if="show" class="modal-overlay" @click="closeModal">
     <div class="modal-container" @click.stop>
       <div class="modal-header">
-        <h3 class="modal-title">Website Settings</h3>
+        <h3 class="modal-title">{{ $t('Website Settings') }}</h3>
         <button class="close-button" @click="closeModal">&times;</button>
       </div>
 
@@ -10,19 +10,18 @@
         <div v-if="license" id="domain-settings" class="settings-form">
           <!-- Website Info -->
           <div class="form-section">
-            <h4 class="section-title">Website</h4>
+            <h4 class="section-title">{{ $t('Website') }}</h4>
             <div class="form-group">
-              <label class="form-label" for="domain-input">Domain:</label>
+              <label class="form-label" for="domain-input">{{ $t('Domain:') }}</label>
               <DomainSelect v-model="formData.domain" />
               <small class="form-help"
-                >Enter your website domain (e.g., example.com). Subdomains like
-                dev.example.com will also work.</small
+                >{{ $t('Enter your website domain (e.g., example.com). Subdomains like dev.example.com will also work.') }}</small
               >
             </div>
           </div>
           <!-- Languages Settings -->
           <div id="languages-settings" class="form-section">
-            <h4 class="section-title">Languages</h4>
+            <h4 class="section-title">{{ $t('Languages') }}</h4>
             <div class="form-group">
               <LanguageSelect
                 v-model="formData.languages"
@@ -33,9 +32,9 @@
 
           <!-- Icon Settings -->
           <div id="icon-settings" class="form-section">
-            <h4 class="section-title">Icon</h4>
+            <h4 class="section-title">{{ $t('Icon') }}</h4>
             <div class="form-group">
-              <label class="form-label">Select an icon for the toolbar:</label>
+              <label class="form-label">{{ $t('Select an icon for the toolbar:') }}</label>
               <div class="radio-group">
                 <label
                   v-for="icon in availableIcons"
@@ -72,7 +71,7 @@
 
           <!-- Text-to-Speech Settings -->
           <div id="tts-settings" class="form-section">
-            <h4 class="section-title">Text-to-Speech (TTS)</h4>
+            <h4 class="section-title">{{ $t('Text-to-Speech (TTS)') }}</h4>
             <div class="form-group">
               <label class="toggle-label">
                 <input
@@ -83,13 +82,13 @@
                 />
                 <span class="toggle-slider"></span>
                 <span class="toggle-text">
-                  {{ formData.ttsEnabled ? 'Enabled' : 'Disabled' }}
+                  {{ formData.ttsEnabled ? $t('Enabled') : $t('Disabled') }}
                 </span>
               </label>
               <small class="form-help">
-                Enable text-to-speech functionality for your website.
+                {{ $t('Enable text-to-speech functionality for your website.') }}
                 <template v-if="license && license.type === 'manual'">
-                  Manual licenses use AWS Polly with voice selection.
+                  {{ $t('Manual licenses use AWS Polly with voice selection.') }}
                 </template>
               </small>
             </div>
@@ -105,11 +104,11 @@
                 />
                 <span class="toggle-slider"></span>
                 <span class="toggle-text">
-                  Enable Highlighting {{ formData.ttsHighlighting ? '(On)' : '(Off)' }}
+                  {{ $t('Enable Highlighting') }} {{ formData.ttsHighlighting ? $t('(On)') : $t('(Off)') }}
                 </span>
               </label>
               <small class="form-help">
-                Highlight text while it's being read aloud.
+                {{ $t("Highlight text while it's being read aloud.") }}
               </small>
             </div>
           </div>
@@ -125,21 +124,21 @@
                 />
                 <span class="toggle-slider"></span>
                 <span class="toggle-text">
-                  Enable Poly {{ formData.polyEnabled ? '(On)' : '(Off)' }}
+                  {{ $t('Enable Poly') }} {{ formData.polyEnabled ? $t('(On)') : $t('(Off)') }}
                 </span>
               </label>
               <small class="form-help">
-                Enable Poly for manual licenses.
+                {{ $t('Enable Poly for manual licenses.') }}
               </small>
             </div>
 
           <!-- Position Settings -->
           <div id="display-settings" class="form-section">
-            <h4 class="section-title">Toolbar Position</h4>
+            <h4 class="section-title">{{ $t('Toolbar Position') }}</h4>
 
             <!-- Horizontal Position -->
             <div class="form-group">
-              <label class="form-label">Horizontal Position:</label>
+              <label class="form-label">{{ $t('Horizontal Position:') }}</label>
               <div class="radio-group">
                 <label class="radio-option">
                   <input
@@ -148,7 +147,7 @@
                     v-model="formData.position.horizontal"
                     @change="clearMessages"
                   />
-                  <span>Left</span>
+                  <span>{{ $t('Left') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -157,7 +156,7 @@
                     v-model="formData.position.horizontal"
                     @change="clearMessages"
                   />
-                  <span>Middle</span>
+                  <span>{{ $t('Middle') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -166,14 +165,14 @@
                     v-model="formData.position.horizontal"
                     @change="clearMessages"
                   />
-                  <span>Right</span>
+                  <span>{{ $t('Right') }}</span>
                 </label>
               </div>
             </div>
 
             <!-- Vertical Position -->
             <div class="form-group">
-              <label class="form-label">Vertical Position:</label>
+              <label class="form-label">{{ $t('Vertical Position:') }}</label>
               <div class="radio-group">
                 <label class="radio-option">
                   <input
@@ -181,7 +180,7 @@
                     value="top"
                     v-model="formData.position.vertical"
                   />
-                  <span>Top</span>
+                  <span>{{ $t('Top') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -189,7 +188,7 @@
                     value="middle"
                     v-model="formData.position.vertical"
                   />
-                  <span>Middle</span>
+                  <span>{{ $t('Middle') }}</span>
                 </label>
                 <label class="radio-option">
                   <input
@@ -197,7 +196,7 @@
                     value="bottom"
                     v-model="formData.position.vertical"
                   />
-                  <span>Bottom</span>
+                  <span>{{ $t('Bottom') }}</span>
                 </label>
               </div>
             </div>
@@ -206,7 +205,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="horizontal-offset"
-                  >Horizontal Offset (px):</label
+                  >{{ $t('Horizontal Offset (px):') }}</label
                 >
                 <input
                   id="horizontal-offset"
@@ -219,7 +218,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="vertical-offset"
-                  >Vertical Offset (px):</label
+                  >{{ $t('Vertical Offset (px):') }}</label
                 >
                 <input
                   id="vertical-offset"
@@ -277,14 +276,14 @@
           @click="closeModal"
           :disabled="loading"
         >
-          Cancel
+          {{ $t('Cancel') }}
         </button>
         <button
           class="btn btn-primary"
           @click="saveSettings"
           :disabled="loading"
         >
-          {{ loading ? "Saving..." : "Save Settings" }}
+          {{ loading ? $t("Saving...") : $t("Save Settings") }}
         </button>
       </div>
     </div>

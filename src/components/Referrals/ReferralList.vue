@@ -1,16 +1,16 @@
 <template>
   <div class="referral-list-container">
-    <h3 class="section-subtitle">Your Referrals</h3>
+    <h3 class="section-subtitle">{{ $t('Your Referrals') }}</h3>
     <div v-if="referrals.length === 0" class="no-referrals">
-      <p>You haven't referred anyone yet. Share your link to get started!</p>
+      <p>{{ $t("You haven't referred anyone yet. Share your link to get started!") }}</p>
     </div>
     <table v-else class="referrals-table">
       <thead>
         <tr>
-          <th data-label="User">User</th>
-          <th data-label="Plan">Plan</th>
-          <th data-label="Status">Status</th>
-          <th data-label="Earnings">Earnings</th>
+          <th data-label="User">{{ $t('Referred User') }}</th>
+          <th data-label="Plan">{{ $t('Plan') }}</th>
+          <th data-label="Status">{{ $t('Status') }}</th>
+          <th data-label="Earnings">{{ $t('Earnings') }}</th>
         </tr>
       </thead>  
       <tbody>
@@ -22,7 +22,7 @@
             </div>
           </td>
           <td>
-            {{ referral.subscription_type == null ? 'N/A' : referral.subscription_type }}
+            {{ referral.subscription_type == null ? $t('N/A') : referral.subscription_type }}
           </td>
           <td>
             <span
@@ -32,7 +32,7 @@
                 'status-pending': !referral.converted,
               }"
             >
-              {{ referral.converted ? "Converted" : "Pending" }}
+              {{ referral.converted ? $t("Converted") : $t("Pending") }}
             </span>
           </td>
           <td>

@@ -1,16 +1,16 @@
 <template>
   <div class="access-denied-container">
     <div class="access-denied-box">
-      <LockIcon :size="48" class="access-denied-icon" />
-      <h1 class="access-denied-title">Permission Required</h1>
+      <LockIcon :size=48 class="access-denied-icon" />
+      <h1 class="access-denied-title">{{ $t('Permission Required') }}</h1>
       <p class="access-denied-message">
-        This page requires a higher access level than your current role.
+        {{ $t('This page requires a higher access level than your current role.') }}
       </p>
       <div class="role-indicator">
-        Your Role: <strong>{{ authStore.currentAccountRole }}</strong>
+        {{ $t('Your Role:') }} <strong>{{ authStore.currentAccountRole }}</strong>
       </div>
       <button @click="goBack" class="btn btn-primary">
-        Go to Dashboard
+        {{ $t('Go to Dashboard') }}
       </button>
     </div>
   </div>

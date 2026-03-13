@@ -90,18 +90,18 @@ onMounted(() => {
   <div class="account-switcher">
     <!-- Current Account Display (always show when accounts are loaded) -->
     <div v-if="!loading && currentAccount" class="current-account-display">
-      <div class="dropdown-section-title">Current Account</div>
+      <div class="dropdown-section-title">{{ $t('Current Account') }}</div>
       <div class="current-account-info">
         <div class="account-name">{{ currentAccount.name }}</div>
         <div class="account-details">
-          <span class="account-role">Access Level: {{ currentAccount.access_level }}</span>
+          <span class="account-role">{{ $t('Access Level:') }} {{ currentAccount.access_level }}</span>
         </div>
       </div>
     </div>
 
     <!-- Only show switcher if user has multiple accounts -->
     <div v-if="!loading && hasMultipleAccounts" class="dropdown-section">
-      <div class="dropdown-section-title">Switch Account</div>
+      <div class="dropdown-section-title">{{ $t('Switch Account') }}</div>
       
       <!-- Account Select Dropdown -->
       <div class="account-selector">
@@ -116,7 +116,7 @@ onMounted(() => {
             :key="account.id"
             :value="account.id"
           >
-            {{ account.name }} ({{ account.access_level }}){{ account.is_current ? ' - Current' : '' }}
+            {{ account.name }} ({{ account.access_level }}){{ account.is_current ? ' - ' + $t('Current') : '' }}
           </option>
         </select>
       </div>
@@ -124,7 +124,7 @@ onMounted(() => {
       <!-- Loading State -->
       <div v-if="loading" class="loading-state">
         <span class="loading-spinner">⏳</span>
-        Switching account...
+        {{ $t('Switching account...') }}
       </div>
 
       <!-- Error State -->
@@ -136,24 +136,24 @@ onMounted(() => {
 
     <!-- Single Account Info (when user only has one account) -->
     <div v-else-if="!loading && accounts.length === 1 && currentAccount" class="single-account">
-      <div class="dropdown-section-title">Account</div>
+      <div class="dropdown-section-title">{{ $t('Account') }}</div>
       <div class="account-item">
         <div class="account-info">
           <div class="account-name">{{ currentAccount.name }}</div>
           <div class="account-role">{{ currentAccount.access_level }}</div>
         </div>
         <div class="account-status">
-          <span v-if="currentAccount.is_current" class="current-badge">Current</span>
+          <span v-if="currentAccount.is_current" class="current-badge">{{ $t('Current') }}</span>
         </div>
       </div>
     </div>
 
     <!-- Loading state for initial load -->
     <div v-if="loading && accounts.length === 0" class="loading-initial">
-      <div class="dropdown-section-title">Account</div>
+      <div class="dropdown-section-title">{{ $t('Account') }}</div>
       <div class="loading-state">
         <span class="loading-spinner">⏳</span>
-        Loading accounts...
+        {{ $t('Loading accounts...') }}
       </div>
     </div>
   </div>

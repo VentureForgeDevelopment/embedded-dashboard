@@ -9,29 +9,28 @@
             align-items: center;
           "
         />
-        Back
+        {{ $t('Back') }}
       </button>
     </div>
     <div class="notification-content">
       <h4 class="notification-title">
-        {{ notification.title }}
+        <TDynamic :text="notification.title" />
       </h4>
 
       <div class="notification-body">
         <p>
-          {{ notification.body }}
+          <TDynamic :text="notification.body" />
         </p>
 
         <p v-if="notification.type === 'invoice.payment_failed'" class="extra">
-          Or you can also manually update your payment information and attempt a
-          retry payment from the invoices tab.
+          {{ $t('Or you can also manually update your payment information and attempt a retry payment from the invoices tab.') }}
           <br />
           <button
             class="view-invoices-button btn btn-outline"
             type="default"
             @click="redirectToSubscriptions()"
           >
-            View Failed Payment
+            {{ $t('View Failed Payment') }}
           </button>
         </p>
 
@@ -42,7 +41,7 @@
             type="default"
             @click="redirectToAccountSetup()"
           >
-            Finalize Account Setup
+            {{ $t('Finalize Account Setup') }}
           </button>
         </p>
       </div>

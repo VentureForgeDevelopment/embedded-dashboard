@@ -12,9 +12,9 @@
       type="fail"
     />
     <div class="installation-card-header">
-      <h3 class="card-title">Installation Setup</h3>
+      <h3 class="card-title">{{ $t('Installation Setup') }}</h3>
       <p class="installation-description">
-        Choose your preferred installation method to activate your license
+        {{ $t('Choose your preferred installation method to activate your license') }}
       </p>
     </div>
     <div class="installation-mode-switcher">
@@ -23,7 +23,7 @@
         :class="{ active: mode === 'script' }"
         class="mode-button"
       >
-        Script
+        {{ $t('Script') }}
       </button>
       <button
         @click="mode = 'dns'"
@@ -39,12 +39,12 @@
           style="margin-left: 0.5rem"
           class="status-indicator enabled-badge"
         >
-          Enabled
+          {{ $t('Enabled') }}
           <span v-if="isDnsEnabledAndUnverified" class="enabled-badge-asterisk"
             >*</span
           >
         </span>
-        <span v-if="is_free" class="premium-badge">Premium</span>
+        <span v-if="is_free" class="premium-badge">{{ $t('Premium') }}</span>
       </button>
     </div>
     <div class="card-content">
@@ -64,24 +64,20 @@
                 clip-rule="evenodd"
               />
             </svg>
-            <h4>Installation Handled Automatically</h4>
+            <h4>{{ $t('Installation Handled Automatically') }}</h4>
             <p v-if="isShopifyPlatform">
-              To display the language switcher on your storefront, go to your
-              Shopify theme editor and enable the Web Linguist app embed toggle
-              in your theme settings.
+              {{ $t('To display the language switcher on your storefront, go to your Shopify theme editor and enable the Web Linguist app embed toggle in your theme settings.') }}
             </p>
             <p v-else>
-              Because you are using the WebLinguist WordPress plugin, your
-              installation script is automatically embedded into your site.
+              {{ $t('Because you are using the WebLinguist WordPress plugin, your installation script is automatically embedded into your site.') }}
             </p>
           </div>
         </div>
         <div class="card-header">
           <div class="script-embed-header">
-            <h4 class="card-title">Script</h4>
+            <h4 class="card-title">{{ $t('Script') }}</h4>
             <p class="installation-description">
-              Copy and paste this script into your browser console on any
-              website:
+              {{ $t('Copy and paste this script into your browser console on any website:') }}
             </p>
           </div>
         </div>
@@ -91,7 +87,7 @@
           @click="copyInstallationScript"
           :disabled="isEmbedded"
         >
-          {{ copiedScript ? "Copied!" : "Copy" }}
+          {{ copiedScript ? $t("Copied!") : $t("Copy") }}
         </button>
 
         <pre class="installation-script">{{ installationScript }}</pre>
@@ -102,14 +98,14 @@
         <div class="dns-setup-box">
           <div class="card-header">
             <div class="script-embed-header">
-              <h4 class="card-title">Manual DNS</h4>
+              <h4 class="card-title">{{ $t('Manual DNS') }}</h4>
               <p class="installation-description">
-                Add these DNS records manually in your domain provider
+                {{ $t('Add these DNS records manually in your domain provider') }}
               </p>
             </div>
             <div class="manual-status">
               <span v-if="isDnsEnabled" class="status-indicator enabled-badge"
-                >Enabled</span
+                >{{ $t('Enabled') }}</span
               >
               <span class="status-indicator" :class="verificationStatusClass">{{
                 verificationStatusText
@@ -119,29 +115,24 @@
           <ol class="dns-steps">
             <li class="dns-step">
               <span class="step-number">1</span>
-              <span>Log in to your domain provider's DNS management panel</span>
+              <span>{{ $t("Log in to your domain provider's DNS management panel") }}</span>
             </li>
             <li class="dns-step">
               <span class="step-number">2</span>
               <span
-                >Note your current @ record's value (it's usually a Type A or
-                CNAME). Create a new record with the name "wl-origin", using the
-                same type and value as your original @ record.</span
+                >{{ $t('Note your current @ record\'s value (it\'s usually a Type A or CNAME). Create a new record with the name "wl-origin", using the same type and value as your original @ record.') }}</span
               >
             </li>
             <li class="dns-step">
               <span class="step-number">3</span>
               <span
-                >Delete your original @ record and re-create it as a CNAME
-                record pointing to <strong>proxy.weblinguist.ai</strong>.</span
+                >{{ $t('Delete your original @ record and re-create it as a CNAME record pointing to') }} <strong>proxy.weblinguist.ai</strong>.</span
               >
             </li>
             <li class="dns-step">
               <span class="step-number">4</span>
               <span
-                >Wait for DNS changes to propagate, then you should be able to
-                visit your website and see the changes. Try visiting
-                yoursite.com/fr/ or yoursite.com/es-MX/</span
+                >{{ $t('Wait for DNS changes to propagate, then you should be able to visit your website and see the changes. Try visiting yoursite.com/fr/ or yoursite.com/es-MX/') }}</span
               >
             </li>
           </ol>
@@ -159,8 +150,8 @@
             </label>
             <span class="toggle-text">{{
               showStartButton
-                ? "Enable Manual DNS Setup"
-                : "Manual DNS Setup Enabled"
+                ? $t("Enable Manual DNS Setup")
+                : $t("Manual DNS Setup Enabled")
             }}</span>
           </div>
 
@@ -200,9 +191,9 @@
             <table class="dns-table">
               <thead>
                 <tr>
-                  <th>Type</th>
-                  <th>Name</th>
-                  <th>Value</th>
+                  <th>{{ $t('Type') }}</th>
+                  <th>{{ $t('Name') }}</th>
+                  <th>{{ $t('Value') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -262,7 +253,7 @@
                 </tr>
 
                 <tr>
-                  <td>CNAME</td>
+                  <td>{{ $t('CNAME') }}</td>
                   <td>
                     <div class="dns-value-wrapper">
                       <code class="dns-value">{{ dnsRecord2.name }}</code>
@@ -341,7 +332,7 @@
                   stroke-width="5"
                 ></circle>
               </svg>
-              {{ isVerifying ? "Verifying..." : "Verify DNS Records" }}
+              {{ isVerifying ? $t("Verifying...") : $t("Verify DNS Records") }}
             </button>
           </div>
         </div>

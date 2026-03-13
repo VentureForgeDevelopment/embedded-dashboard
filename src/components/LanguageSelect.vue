@@ -3,16 +3,16 @@
     <div class="language-select-wrapper section-content">
       <div class="languages-selection-wrapper">
         <div v-if="showLanguageWarning" class="language-limit-reached">
-          <p v-if="initialOnboardComplete">Language Limit Reached</p>
+          <p v-if="initialOnboardComplete">{{ $t('Language Limit Reached') }}</p>
         </div>
         <LlInput
           v-model="languageSearch"
-          placeholder="Search languages..."
+          :placeholder="$t('Search languages...')"
           style="margin-bottom: 1rem"
         />
         <LlSelect
           v-model="selectedLanguages"
-          label="Language Selection"
+          :label="$t('Language Selection')"
           id="language_select"
           name="language_select"
           multiple
@@ -46,24 +46,23 @@
           </option>
         </LlSelect>
         <p class="language-select-assurance-msg">
-          Start with your most important audience. You can add more languages
-          anytime.
+          {{ $t('Start with your most important audience. You can add more languages anytime.') }}
         </p>
         <span
           v-if="showLanguageWarning"
           class="tooltip-container"
-          data-tooltip="Language Limit Reached"
+          :data-tooltip="$t('Language Limit Reached')"
         ></span>
       </div>
 
       <div class="selected-languages-wrapper">
         <p v-if="!initialOnboardComplete">
-          <span v-if="showLanguageWarning" class="single-language-warning">Starter plan includes 1 language</span>
-          <span v-if="selectedLanguages.length"> 1 Language Selected </span>
-          <span v-else> 0 Languages Selected </span>
+          <span v-if="showLanguageWarning" class="single-language-warning">{{ $t('Starter plan includes 1 language') }}</span>
+          <span v-if="selectedLanguages.length"> {{ $t('1 Language Selected') }} </span>
+          <span v-else> {{ $t('0 Languages Selected') }} </span>
         </p>
         <p v-else>
-          {{ selectedLanguages.length }}/{{ languageLimit }} Languages Selected
+          {{ selectedLanguages.length }}/{{ languageLimit }} {{ $t('Languages Selected') }}
         </p>
         <div
           v-show="selectedLanguages.length"
@@ -97,8 +96,8 @@
           ]"
           :disabled="selectedLanguages.length === 0"
         >
-        <span v-if="!initialOnboardComplete">Continue to Activation</span>
-        <span v-else>Save</span>
+        <span v-if="!initialOnboardComplete">{{ $t('Continue to Activation') }}</span>
+        <span v-else>{{ $t('Save') }}</span>
         </button>
       </div>
     </div>

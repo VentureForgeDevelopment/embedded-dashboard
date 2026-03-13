@@ -12,7 +12,7 @@
       <div class="page-header">
         <div class="header-content">
           <div class="title-section">
-            <h1 class="page-title">Affiliates</h1>
+            <h1 class="page-title">{{ $t('Affiliates') }}</h1>
           </div>
         </div>
       </div>
@@ -24,21 +24,21 @@
           :class="{ active: activeTab === 'referrals' }"
           @click="navigateToReferralsTab"
         >
-          Referrals
+          {{ $t('Referrals') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'payouts' }"
           @click="navigateToPayoutsTab"
         >
-          Payouts
+          {{ $t('Payouts') }}
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'ads' }"
           @click="navigateToAdsTab"
         >
-          Ads
+          {{ $t('Ads') }}
         </button>
         <button
           class="tab-button"
@@ -53,7 +53,7 @@
               margin-right: 0.5rem;
             "
           />
-          How It Works
+          {{ $t('How It Works') }}
         </button>
       </div>
 

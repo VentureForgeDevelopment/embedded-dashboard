@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Loading subscription...</p>
+      <p>{{ $t('Loading subscription...') }}</p>
     </div>
     <div v-else>
       <div v-if="subscription" class="subscriptions-switch-wrapper">
@@ -11,7 +11,7 @@
           class="subscriptions-switch-title"
           v-if="subscription && subscription.license"
         >
-          Viewing: {{ subscription.license.domain_name }}
+          {{ $t('Viewing:') }} {{ subscription.license.domain_name }}
         </p>
         <ul>
           <li v-if="!isShopifyPlatform">
@@ -19,7 +19,7 @@
               href="#"
               @click.prevent="goToAllSubscriptions"
               class="subscription-link subscription-link-all"
-              >All</a
+              >{{ $t('All') }}</a
             >
           </li>
           <li v-for="subscription in subscriptionsForSwitcher" :key="subscription.id">
@@ -42,10 +42,10 @@
         <div class="plan-card subscription-plan-card">
           <div class="plan-header">
             <div>
-              <h3 class="plan-name">{{ subscription.type === 'Starter' ? 'Standard' : subscription.type }} 
-                Plan
+              <h3 class="plan-name">{{ subscription.type === 'Starter' ? $t('Standard') : subscription.type }}
+                {{ $t('Plan') }}
                 <span v-if="subscription.ends_at" class="subscription-ends-at-date">
-                  Ends at: {{ formatDate(subscription.ends_at) }}
+                  {{ $t('Ends at:') }} {{ formatDate(subscription.ends_at) }}
                 </span>
               </h3>
               <div class="plan-price">
@@ -54,19 +54,19 @@
               </div>
             </div>
             <div v-if="isShopifyPlatform" class="shopify-billing-container">
-              <p class="shopify-billing-label">Billing via Shopify</p>
+              <p class="shopify-billing-label">{{ $t('Billing via Shopify') }}</p>
               <a
                 :href="'https://' + shopDomain + '/admin/settings/billing'"
                 target="_top"
                 class="btn btn-outline shopify-billing-link"
               >
-                Manage Billing in Shopify Admin
+                {{ $t('Manage Billing in Shopify Admin') }}
               </a>
             </div>
             <div v-else class="payment-methods-container">
               <PaymentMethods
                 :subscription="subscription"
-                label="Payment Method"
+                :label="$t('Payment Method')"
                 @hasMethod="paymentMethod = $event"
               />
             </div>
@@ -100,7 +100,7 @@
                 ]"
                 @click="pushToCheckoutUprade"
               >
-                Upgrade Plan
+                {{ $t('Upgrade Plan') }}
               </button>
               <button
                 v-if="canDowngrade"
@@ -111,7 +111,7 @@
                 ]"
                 @click="pushToCheckoutDowngrade"
               >
-                Downgrade Plan
+                {{ $t('Downgrade Plan') }}
               </button>
               <button
                 v-if="!isShopifyPlatform"
@@ -122,7 +122,7 @@
                 ]"
                 @click="confirmCancelSubscription"
               >
-                Cancel
+                {{ $t('Cancel') }}
               </button>
             </div>
           </div>
@@ -139,16 +139,16 @@
             />
           </div>
           <div v-else>
-            <p>No Invoices Found</p>
+            <p>{{ $t('No Invoices Found') }}</p>
           </div>
         </template>
       </div>
       <div v-else>
         <div class="full-page-cta">
-          <h1>No Subscription Found</h1>
-          <p>Sorry, we couldn't find the subscription you're looking for.</p>
+          <h1>{{ $t('No Subscription Found') }}</h1>
+          <p>{{ $t("Sorry, we couldn't find the subscription you're looking for.") }}</p>
           <button class="btn btn-primary" @click="goToAllSubscriptions">
-            Go to All Subscriptions
+            {{ $t('Go to All Subscriptions') }}
           </button>
         </div>
       </div>
@@ -157,7 +157,7 @@
 </template>
 
 <script>
-import { ref, computed, watchEffect, onMounted } from "vue"
+import { ref, computed, watchEffect, onMounted, inject } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { useSubscriptionStore } from "../stores/subscription"
 import { useCheckoutStore } from "../stores/checkout"
@@ -190,6 +190,9 @@ export default {
     const checkoutStore = useCheckoutStore()
     const themeStore = useThemeStore()
     const licenseStore = useLicenseStore()
+
+    const i18n = inject('i18n')
+    const t = i18n?.t || ((k) => k)
 
     const invoices = ref([])
     const upcomingInvoices = ref([])
@@ -368,15 +371,15 @@ export default {
 
     function confirmCancelSubscription() {
       Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
+        title: t("Are you sure?"),
+        text: t("You won't be able to revert this!"),
         icon: "warning",
         input: "checkbox",
-        inputLabel: "Cancel immediately",
+        inputLabel: t("Cancel immediately"),
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, cancel it!",
+        confirmButtonText: t("Yes, cancel it!"),
       })
         .then((result) => {
           if (result && result.value === 1) {
@@ -391,10 +394,10 @@ export default {
                   (res.data.success || parseInt(res.data.success) === 1)
                 ) {
                   Swal.fire({
-                    title: "Cancelled!",
-                    text: "Your subscription has been cancelled.",
+                    title: t("Cancelled!"),
+                    text: t("Your subscription has been cancelled."),
                     icon: "success",
-                    confirmButtonText: "Ok",
+                    confirmButtonText: t("Ok"),
                   })
                   router.push({ path: "/subscriptions" })
 
@@ -403,10 +406,10 @@ export default {
                   })
                 } else {
                   Swal.fire({
-                    title: "Error",
-                    text: "There was an issue cancelling your subscription. Please try again.",
+                    title: t("Error"),
+                    text: t("There was an issue cancelling your subscription. Please try again."),
                     icon: "error",
-                    confirmButtonText: "Ok",
+                    confirmButtonText: t("Ok"),
                   })
                 }
               })
@@ -422,20 +425,20 @@ export default {
                   (res.data.success || parseInt(res.data.success) === 1)
                 ) {
                   Swal.fire({
-                    title: "Cancelled!",
-                    text: "Your subscription has been set to cancel at the end of your billing cycle.",
+                    title: t("Cancelled!"),
+                    text: t("Your subscription has been set to cancel at the end of your billing cycle."),
                     icon: "success",
-                    confirmButtonText: "Ok",
+                    confirmButtonText: t("Ok"),
                   })
                   subscriptionStore.getSubscriptions({
                     account_id: subscription.value.account_id,
                   })
                 } else {
                   Swal.fire({
-                    title: "Error",
-                    text: "There was an issue cancelling your subscription. Please try again.",
+                    title: t("Error"),
+                    text: t("There was an issue cancelling your subscription. Please try again."),
                     icon: "error",
-                    confirmButtonText: "Ok",
+                    confirmButtonText: t("Ok"),
                   })
                 }
               })
@@ -444,10 +447,10 @@ export default {
         .catch((error) => {
           console.error(error)
           Swal.fire({
-            title: "Error",
-            text: "There was an issue cancelling your subscription. Please try again.",
+            title: t("Error"),
+            text: t("There was an issue cancelling your subscription. Please try again."),
             icon: "error",
-            confirmButtonText: "Ok",
+            confirmButtonText: t("Ok"),
           })
         })
     }

@@ -73,6 +73,8 @@ const isNotificationModalOpen = computed(() => {
   return themeStore.modalOpen
 })
 
+const showLanguageSwitcher = import.meta.env.VITE_WL_SHOW_LANGUAGE_SWITCHER === 'true'
+
 const hasUnreadNotifications = computed(() => {
   return accountStore.state.notifications.some(
     (n) => !n.viewed && n.viewed !== 1
@@ -173,7 +175,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Overview
+              {{ $t('Overview') }}
             </router-link>
 
             <router-link
@@ -190,7 +192,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Websites
+              {{ $t('Websites') }}
             </router-link>
 
             <router-link
@@ -207,7 +209,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Affiliates
+              {{ $t('Affiliates') }}
             </router-link>
 
             <router-link
@@ -224,7 +226,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Agency
+              {{ $t('Agency') }}
             </router-link>
           </template>
           <!-- Embedded Nav Links -->
@@ -244,7 +246,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Customize
+              {{ $t('Customize') }}
             </router-link>
             <router-link
               :to="
@@ -263,7 +265,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Billing
+              {{ $t('Billing') }}
             </router-link>
             <a
               href="https://weblinguist.ai/affiliates/"
@@ -278,7 +280,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Affiliates
+              {{ $t('Affiliates') }}
             </a>
           </template>
         </div>
@@ -290,11 +292,11 @@ onUnmounted(() => {
             v-show="!hideElement"
             @click.stop="toggleMobileMenu"
             class="mobile-menu-button"
-            title="Open menu"
+            :title="$t('Open menu')"
           >
             <Menu
               class="mobile-menu-icon"
-              size="28"
+              size=28
               style="
                 display: inline-flex;
                 justify-content: center;
@@ -319,7 +321,7 @@ onUnmounted(() => {
             v-show="!hideElement"
             @click="toggleModal"
             class="notification-button"
-            title="View notifications"
+            :title="$t('View notifications')"
           >
             <Bell
               class="notification-icon"
@@ -346,7 +348,7 @@ onUnmounted(() => {
                 <button
                   @click="toggleModal"
                   class="modal-close-button"
-                  title="Close"
+                  :title="$t('Close')"
                 >
                   &times;
                 </button>
@@ -376,7 +378,7 @@ onUnmounted(() => {
                 <div class="dropdown-header">
                   <div class="user-info">
                     <div class="user-name">
-                      {{ authStore.user?.name || "User" }}
+                      {{ authStore.user?.name || $t("User") }}
                     </div>
                     <div class="user-email">
                       {{ authStore.user?.email || "" }}
@@ -400,14 +402,14 @@ onUnmounted(() => {
                     "
                   />
 
-                  Profile
+                  {{ $t('Profile') }}
                 </router-link>
 
                 <div class="dropdown-divider"></div>
 
                 <!-- Account Section -->
                 <div class="dropdown-section">
-                  <div class="dropdown-section-title">Account</div>
+                  <div class="dropdown-section-title">{{ $t('Account') }}</div>
                   <router-link
                     to="/subscriptions"
                     class="dropdown-item"
@@ -421,7 +423,7 @@ onUnmounted(() => {
                         align-items: center;
                       "
                     />
-                    Billing
+                    {{ $t('Billing') }}
                   </router-link>
                   <router-link
                     to="/edit-account"
@@ -435,7 +437,7 @@ onUnmounted(() => {
                         align-items: center;
                       "
                     />
-                    Edit Account
+                    {{ $t('Edit Account') }}
                   </router-link>
                   <router-link
                     to="/manage-users"
@@ -449,7 +451,7 @@ onUnmounted(() => {
                         align-items: center;
                       "
                     />
-                    Manage Users
+                    {{ $t('Manage Users') }}
                   </router-link>
                 </div>
 
@@ -469,7 +471,7 @@ onUnmounted(() => {
                       align-items: center;
                     "
                   />
-                  Logout
+                  {{ $t('Logout') }}
                 </button>
               </div>
             </transition>
@@ -490,7 +492,7 @@ onUnmounted(() => {
           <button
             @click="toggleMobileMenu"
             class="mobile-menu-close-button"
-            title="Close"
+            :title="$t('Close')"
           >
             &times;
           </button>
@@ -512,7 +514,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Overview
+              {{ $t('Overview') }}
             </router-link>
 
             <router-link
@@ -529,7 +531,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Websites
+              {{ $t('Websites') }}
             </router-link>
 
             <router-link
@@ -546,7 +548,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Affiliates
+              {{ $t('Affiliates') }}
             </router-link>
 
             <router-link
@@ -564,7 +566,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              Agency
+              {{ $t('Agency') }}
             </router-link>
           </template>
           <!-- Embedded Mobile Nav Links -->
@@ -578,7 +580,7 @@ onUnmounted(() => {
               @click="toggleMobileMenu"
             >
               <Laptop class="nav-icon" />
-              Customize
+              {{ $t('Customize') }}
             </router-link>
             <router-link
               :to="
@@ -591,7 +593,7 @@ onUnmounted(() => {
               @click="toggleMobileMenu"
             >
               <CreditCard class="nav-icon" />
-              Billing
+              {{ $t('Billing') }}
             </router-link>
             <a
               href="https://weblinguist.ai/affiliates/"
@@ -600,7 +602,7 @@ onUnmounted(() => {
               @click="toggleMobileMenu"
             >
               <Gift class="nav-icon" />
-              Affiliates
+              {{ $t('Affiliates') }}
             </a>
           </template>
         </div>
@@ -625,11 +627,13 @@ onUnmounted(() => {
     <footer class="footer">
       <div class="footer-container">
         <p class="footer-text">
-          © {{ new Date().getFullYear() }} Growth Dynamics, LLC. All rights
-          reserved.
+          {{ $t('© {year} Growth Dynamics, LLC. All rights reserved.', { year: new Date().getFullYear() }) }}
         </p>
       </div>
     </footer>
+
+    <!-- Language Switcher (floating toolbar clone, controlled by env variable) -->
+    <LanguageSwitcher v-if="showLanguageSwitcher" />
   </div>
 </template>
 

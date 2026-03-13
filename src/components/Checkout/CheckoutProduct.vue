@@ -7,7 +7,7 @@
     v-if="!show_individual_prices"
   >
     <p class="product-title">
-      {{ product.name === "Starter" ? "Standard" : product.name }}
+      {{ $t(product.name === "Starter" ? "Standard" : product.name) }}
     </p>
 
     <div v-if="product.id !== 'free-tier'" class="price-box">
@@ -15,11 +15,11 @@
         <span class="product-price">
           ${{ parseFloat(price.unit_amount).toFixed(2) }}
         </span> /
-        {{ selected_billing_term ? "year" : "month" }}
+        {{ selected_billing_term ? $t("year") : $t("month") }}
       </span>
     </div>
     <div v-else class="price-box">
-      <span> Free Forever! </span>
+      <span> {{ $t('Free Forever!') }} </span>
     </div>
 
     <hr class="divider">
@@ -36,7 +36,7 @@
               margin-right: 0.5rem;
             "
           />
-          {{ feature }}
+          {{ $t(feature) }}
         </li>
       </ul>
       <div v-if="hiddenFeaturesCount > 0" class="show-more-wrapper">
@@ -46,8 +46,8 @@
         >
           {{
             showAllFeatures
-              ? "Show less features"
-              : `Show ${hiddenFeaturesCount} more features`
+              ? $t("Show less features")
+              : $t("Show {count} more features", { count: hiddenFeaturesCount })
           }}
         </button>
       </div>
@@ -72,10 +72,10 @@
     >
       <p v-if="price.id !== 'free-tier-price'" class="product-title">
         {{
-          price.recurring.interval === "month" ? "Monthly Plan" : "Yearly Plan"
+          price.recurring.interval === "month" ? $t("Monthly Plan") : $t("Yearly Plan")
         }}
       </p>
-      <p v-else class="product-title">Free Plan</p>
+      <p v-else class="product-title">{{ $t('Free Plan') }}</p>
 
       <div
         v-if="price.id !== 'free-tier-price'"
@@ -86,21 +86,21 @@
             <span class="bold">
               ${{ price.recurring.interval === "month" ? 1 : 109 }}
             </span>
-            for your first {{ price.recurring.interval }}!
+            {{ $t('for your first') }} {{ price.recurring.interval }}!
           </span>
         </span>
         <span class="actual-price-description">
-          Then ${{ parseFloat(price.unit_amount).toFixed(2) }} /
+          {{ $t('Then') }} ${{ parseFloat(price.unit_amount).toFixed(2) }} /
           {{ price.recurring.interval }}
         </span>
       </div>
       <div v-else class="price-box display-stacked">
         <span class="intial-discount-price">
           <span>
-            <span class="bold"> Free Forever! </span>
+            <span class="bold"> {{ $t('Free Forever!') }} </span>
           </span>
         </span>
-        <span class="actual-price-description"> Upgrade Anytime </span>
+        <span class="actual-price-description"> {{ $t('Upgrade Anytime') }} </span>
       </div>
     </div>
   </div>

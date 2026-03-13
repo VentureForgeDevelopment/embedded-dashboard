@@ -1,15 +1,15 @@
 <template>
   <div class="ads-container">
-    <h3 class="section-subtitle">Ads</h3>
+    <h3 class="section-subtitle">{{ $t('Ads') }}</h3>
     <p class="section-description">
-      Below are some ads you can use to promote Web Linguist.
+      {{ $t('Below are some ads you can use to promote Web Linguist.') }}
     </p>
     <div class="creatives-grid">
       <div class="creative-item">
         <div class="image-container">
           <img
             :src="ad300x250"
-            alt="WebLinguist Affiliate Ad 300x250"
+            :alt="$t('WebLinguist Affiliate Ad 300x250')"
             @click="downloadImage(ad300x250)"
           />
           <button
@@ -25,7 +25,7 @@
         <div class="image-container">
           <img
             :src="ad336x280"
-            alt="WebLinguist Affiliate Ad 336x280"
+            :alt="$t('WebLinguist Affiliate Ad 336x280')"
             @click="downloadImage(ad336x280)"
           />
           <button

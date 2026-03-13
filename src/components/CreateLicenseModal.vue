@@ -2,23 +2,23 @@
   <div v-if="show" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Create New License</h2>
+        <h2>{{ $t('Create New License') }}</h2>
         <button class="close-btn" @click="close">&times;</button>
       </div>
 
       <form @submit.prevent="handleSubmit" class="license-form">
         <div class="form-group">
-          <label for="domain">Domain Name</label>
+          <label for="domain">{{ $t('Domain Name') }}</label>
           <input
             id="domain"
             v-model="formData.domain"
             type="text"
-            placeholder="example.com"
+            :placeholder="$t('example.com')"
             required
             :disabled="loading"
             class="form-input"
           />
-          <small class="form-hint">Enter the domain name where this license will be used</small>
+          <small class="form-hint">{{ $t('Enter the domain name where this license will be used') }}</small>
         </div>
 
         <div v-if="error" class="error-message">
@@ -27,10 +27,10 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="close" :disabled="loading">
-            Cancel
+            {{ $t('Cancel') }}
           </button>
           <button type="submit" class="btn btn-primary" :disabled="loading">
-            {{ loading ? 'Creating...' : 'Create License' }}
+            {{ loading ? $t('Creating...') : $t('Create License') }}
           </button>
         </div>
       </form>

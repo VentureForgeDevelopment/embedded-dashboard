@@ -75,12 +75,12 @@ onMounted(() => {
 <template>
   <div class="edit-account-container max-1200 padding">
     <div class="page-header">
-      <h2 class="page-title">Edit Account</h2>
+      <h2 class="page-title">{{ $t('Edit Account') }}</h2>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading && !accountData.name" class="loading-message">
-      Loading account information...
+      {{ $t('Loading account information...') }}
     </div>
 
     <!-- Main Content -->
@@ -100,13 +100,13 @@ onMounted(() => {
       <!-- Account Form -->
       <div class="form-card">
         <div class="form-header">
-          <h3>Account Information</h3>
-          <p class="form-description">Update your account name and settings.</p>
+          <h3>{{ $t('Account Information') }}</h3>
+          <p class="form-description">{{ $t('Update your account name and settings.') }}</p>
         </div>
         
         <form @submit.prevent="updateAccount" class="account-form">
           <div class="form-group">
-            <label for="accountName">Account Name</label>
+            <label for="accountName">{{ $t('Account Name') }}</label>
             <input 
               id="accountName"
               v-model="accountData.name" 
@@ -123,7 +123,7 @@ onMounted(() => {
               class="btn btn-primary" 
               :disabled="loading || !accountData.name.trim()"
             >
-              {{ loading ? 'Updating...' : 'Update Account' }}
+              {{ loading ? $t('Updating...') : $t('Update Account') }}
             </button>
           </div>
         </form>

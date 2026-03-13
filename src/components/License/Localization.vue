@@ -14,10 +14,10 @@
     <div class="setting-section">
       <div class="title-container">
         <div class="icon-wrapper globe-icon" v-html="globeIcon"></div>
-        <h3 class="title">Native Country</h3>
+        <h3 class="title">{{ $t('Native Country') }}</h3>
       </div>
       <p class="description">
-        Set the primary country for your website for localization purposes.
+        {{ $t('Set the primary country for your website for localization purposes.') }}
       </p>
       <div class="select-wrapper with-spinner">
         <select
@@ -37,7 +37,7 @@
         </select>
         <div class="loading-spinner" v-if="loading.country"></div>
         <div v-if="defaultCountry" class="current-language-indicator">
-          <span>Current: <strong>{{ currentCountry.name }}</strong></span> <span v-html="currentCountry.flag" class="flag-icon"></span>
+          <span>{{ $t('Current:') }} <strong>{{ currentCountry.name }}</strong></span> <span v-html="currentCountry.flag" class="flag-icon"></span>
         </div>
       </div>
       <label class="toggle-label with-spinner" style="margin-top: 1rem;">
@@ -49,13 +49,13 @@
           v-model="phoneNumberLocalizationEnabled"
         />
         <span class="toggle-slider"></span>
-        <span class="toggle-text">Enable Phone Number Localization</span>
+        <span class="toggle-text">{{ $t('Enable Phone Number Localization') }}</span>
         <div class="loading-spinner" v-if="loading.phone"></div>
       </label>
       <div v-if="phoneNumberLocalizationEnabled" class="info-box">
-        <p><strong>Phone Code:</strong> {{ currentCountry.phone_code }}</p>
+        <p><strong>{{ $t('Phone Code:') }}</strong> {{ currentCountry.phone_code || $t('N/A') }}</p>
         <p class="help-text">
-          When enabled, phone numbers will be automatically prepended with the correct country code based on the default language.
+          {{ $t('When enabled, phone numbers on your site will be automatically prepended with') }} <strong>{{ currentCountry.phone_code || '...' }}</strong> {{ $t('based on your native country selection.') }}
         </p>
       </div>
     </div>
@@ -64,10 +64,10 @@
         <div class="icon-wrapper">
           <CurrencyUsd />
         </div>
-        <h3 class="title">Currency Localization</h3>
+        <h3 class="title">{{ $t('Currency Localization') }}</h3>
       </div>
       <p class="description">
-        Enable to visually convert prices into the visitor's local currency based on approximate exchange rates.
+        {{ $t("Enable to visually convert prices into the visitor's local currency based on approximate exchange rates.") }}
       </p>
       <label class="toggle-label with-spinner">
         <input
@@ -78,27 +78,26 @@
           v-model="currencyLocalizationEnabled"
         />
         <span class="toggle-slider"></span>
-        <span class="toggle-text">Enable Currency Localization</span>
+        <span class="toggle-text">{{ $t('Enable Currency Localization') }}</span>
         <div class="loading-spinner" v-if="loading.currency"></div>
       </label>
 
       <div v-if="currencyLocalizationEnabled" class="info-box">
-        <p><strong>Exchange Rate:</strong> 1 USD ≈ 0.92 EUR (placeholder)</p>
-        <p class="help-text">Note: The currency localization rate is approximate and will only affect currency rates visually.</p>
+        <p><strong>{{ $t('Base Currency:') }}</strong> {{ currentCountryCurrency }}</p>
+        <p class="help-text">
+          {{ $t('Prices displayed in') }} <strong>{{ currentCountryCurrency }}</strong> {{ $t('will show approximate conversions in each visitor\'s local currency. Exchange rates are updated daily from the European Central Bank. This is a visual annotation only — original prices are never modified.') }}
+        </p>
       </div>
     </div>
     <div class="setting-section">
       <div class="title-container">
         <div class="icon-wrapper" v-html="translateIcon"></div>
-        <h3 class="title">Default Language</h3>
+        <h3 class="title">{{ $t('Default Language') }}</h3>
       </div>
       <p class="description">
-        Set the primary language for your website. This is the language your
-        content is originally written in.
+        {{ $t('Set the primary language for your website. This is the language your content is originally written in.') }}
       </p>
       <div class="select-wrapper with-spinner">
-        <!-- currently disabled and set to English -->
-         <!-- we only support english as the base language currently -->
         <select
           v-model="defaultLanguage"
           class="language-select"
@@ -107,7 +106,7 @@
           id="default_language_select"
         >
           <option
-            v-for="language in languages"
+            v-for="language in supportedBaseLanguages"
             :key="language.code"
             :value="language.code"
           >
@@ -116,7 +115,7 @@
         </select>
         <div class="loading-spinner" v-if="loading.language"></div>
         <div v-if="currentLanguage" class="current-language-indicator">
-          <span>Current: <strong>{{ currentLanguage.name }}</strong></span> <span v-html="currentLanguage.flag" class="flag-icon"></span>
+          <span>{{ $t('Current:') }} <strong>{{ currentLanguage.name }}</strong></span> <span v-html="currentLanguage.flag" class="flag-icon"></span>
         </div>
       </div>
     </div>
@@ -142,12 +141,18 @@ export default {
       required: true,
     },
   },
-  emits: ["update-setting"],
+  emits: ["update-setting", "setting-saved"],
   setup(props, { emit }) {
     const languageStore = useLanguageStore();
     const licenseStore = useLicenseStore();
 
     const languages = computed(() => languageStore.allLanguages);
+    const supportedBaseLanguages = computed(() => {
+      const baseFamilies = ['en', 'fr', 'es', 'it', 'pt', 'ro']
+      return languageStore.allLanguages.filter(l =>
+        baseFamilies.includes(l.code.toLowerCase().split('-')[0])
+      )
+    });
     const countries = computed(() => languageStore.allCountries);
     const defaultLanguage = ref("en-US");
     const currencyLocalizationEnabled = ref(false);
@@ -193,6 +198,10 @@ export default {
       return languageStore.allCountries.find(c => c.code === defaultCountry.value) || {};
     });
 
+    const currentCountryCurrency = computed(() => {
+      return currentCountry.value?.currency_code || 'USD';
+    });
+
     watch(
       () => props.license,
       (newLicense) => {
@@ -219,7 +228,8 @@ export default {
         license_id: props.license.id,
         setting_key: 'localization.country',
         setting_value: defaultCountry.value
-      }).then(() => {
+      }).then((res) => {
+        if (res.data?.data) emit('setting-saved', res.data.data);
         successMessage.value = "Native country updated successfully.";
         showSuccessNotification.value = true;
         setTimeout(() => showSuccessNotification.value = false, 3000);
@@ -240,7 +250,8 @@ export default {
         license_id: props.license.id,
         setting_key: 'localization.localize_currency',
         setting_value: currencyLocalizationEnabled.value
-      }).then(() => {
+      }).then((res) => {
+        if (res.data?.data) emit('setting-saved', res.data.data);
         successMessage.value = "Currency localization setting updated successfully.";
         showSuccessNotification.value = true;
         setTimeout(() => showSuccessNotification.value = false, 3000);
@@ -261,7 +272,8 @@ export default {
         license_id: props.license.id,
         setting_key: 'localization.localize_phone_numbers',
         setting_value: phoneNumberLocalizationEnabled.value
-      }).then(() => {
+      }).then((res) => {
+        if (res.data?.data) emit('setting-saved', res.data.data);
         successMessage.value = "Phone number localization setting updated successfully.";
         showSuccessNotification.value = true;
         setTimeout(() => showSuccessNotification.value = false, 3000);
@@ -282,7 +294,8 @@ export default {
         license_id: props.license.id,
         setting_key: 'localization.default_language',
         setting_value: defaultLanguage.value
-      }).then(() => {
+      }).then((res) => {
+        if (res.data?.data) emit('setting-saved', res.data.data);
         successMessage.value = "Default language updated successfully.";
         showSuccessNotification.value = true;
         setTimeout(() => showSuccessNotification.value = false, 3000);
@@ -297,7 +310,11 @@ export default {
 
     onMounted(() => {
       languageStore.fetchSupportedLanguages();
-      languageStore.fetchSupportedCountries();
+
+      // Force refresh if cached countries are missing currency_code field
+      const needsRefresh = languageStore.allCountries.length > 0 &&
+        !languageStore.allCountries[0]?.currency_code;
+      languageStore.fetchSupportedCountries(needsRefresh);
     });
 
     return {
@@ -309,6 +326,7 @@ export default {
 
       // Data
       languages,
+      supportedBaseLanguages,
       countries,
       defaultLanguage,
       defaultCountry,
@@ -317,6 +335,7 @@ export default {
       loading,
       currentLanguage,
       currentCountry,
+      currentCountryCurrency,
       currencyLocalizationEnabled,
       phoneNumberLocalizationEnabled,
 

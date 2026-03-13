@@ -6,8 +6,8 @@
           <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
         </svg>
       </div>
-      <h3 class="upgrade-title">{{ title || 'Upgrade to Unlock' }}</h3>
-      <p class="upgrade-description">{{ description || 'This feature requires a paid subscription.' }}</p>
+      <h3 class="upgrade-title">{{ title || $t('Upgrade to Unlock') }}</h3>
+      <p class="upgrade-description">{{ description || $t('This feature requires a paid subscription.') }}</p>
 
       <div v-if="features && features.length" class="feature-list">
         <div v-for="(feature, index) in features" :key="index" class="feature-item">
@@ -27,7 +27,7 @@
             <line x1="12" y1="8" x2="12" y2="16"></line>
             <line x1="8" y1="12" x2="16" y2="12"></line>
           </svg>
-          {{ buttonText || 'Upgrade Now' }}
+          {{ buttonText || $t('Upgrade Now') }}
         </button>
       </div>
     </div>

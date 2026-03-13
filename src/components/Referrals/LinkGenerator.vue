@@ -1,8 +1,8 @@
 <template>
   <div class="link-generator-container">
-    <h3 class="section-subtitle">Your Referral Link</h3>
+    <h3 class="section-subtitle">{{ $t('Your Referral Link') }}</h3>
     <p class="section-description">
-      Share this unique link with friends and colleagues to start earning.
+      {{ $t('Share this unique link with friends and colleagues to start earning.') }}
     </p>
     <div class="link-box">
       <input
@@ -13,7 +13,7 @@
         class="link-input"
       />
       <button @click="copyToClipboard" class="copy-button">
-        {{ copyButtonText }}
+        {{ $t(copyButtonText) }}
       </button>
     </div>
   </div>
@@ -43,7 +43,7 @@ export default {
       if (user.value && user.value.id) {
         return `${marketingHomepageUrl.value}?ref=${user.value.id}`
       }
-      return "Generating link..."
+      return "Generating link..." // translated in template via $t()
     })
 
     const copyToClipboard = async () => {

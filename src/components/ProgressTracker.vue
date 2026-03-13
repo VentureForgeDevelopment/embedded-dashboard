@@ -1,9 +1,8 @@
 <template>
   <div class="progress-tracker-container">
-    <h3 class="section-subtitle">Agency Progress Tracker</h3>
+    <h3 class="section-subtitle">{{ $t('Agency Progress Tracker') }}</h3>
     <p class="section-description">
-      This is a progress tracker for your agency. It will help you keep track of
-      your progress and see how far you have come. Click the steps to check them off your list.
+      {{ $t('This is a progress tracker for your agency. It will help you keep track of your progress and see how far you have come. Click the steps to check them off your list.') }}
     </p>
     <div class="progress-container">
       <div class="progress-bar-container">
@@ -13,7 +12,7 @@
         ></div>
       </div>
       <span class="progress-text"
-        >{{ Math.round(progressPercentage) }}% Complete</span
+        >{{ $t('{percent}% Complete', { percent: Math.round(progressPercentage) }) }}</span
       >
     </div>
     <ul class="progress-tracker-steps-list">
@@ -24,7 +23,7 @@
         >
           <span class="completed-indicator">
             <span v-if="step.viewed" style="width: 30px; height: 30px">
-              <CheckCircleIcon fill-color="#27ae60" size="30" />
+              <CheckCircleIcon fill-color="#27ae60" size=30 />
             </span>
           </span>
 
@@ -37,19 +36,22 @@
       <span style="font-size:2rem">
         🎉
       </span>
-      Congratulations! You're earning recurring revenue! Keep it up!
+      {{ $t("Congratulations! You're earning recurring revenue! Keep it up!") }}
     </p>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue"
+import { computed, inject } from "vue"
 import { parseNotification } from "../../parseNotification"
 import { useAccountStore } from "../stores/account"
 import { useAuthStore } from "../stores/auth"
 import Swal from "sweetalert2"
 import { useRouter } from "vue-router"
 import CheckCircleIcon from "vue-material-design-icons/CheckCircle.vue"
+
+const i18n = inject('i18n')
+const t = i18n?.t || ((k) => k)
 
 const accountStore = useAccountStore()
 const authStore = useAuthStore()
@@ -91,8 +93,8 @@ const markAsCompleted = (step) => {
 
 const triggerCompletionSuccess = () => {
   Swal.fire({
-    title: "Congratulations!",
-    text: "You have unlocked your multilingual recurring revenue stream. Keep it up!",
+    title: t("Congratulations!"),
+    text: t("You have unlocked your multilingual recurring revenue stream. Keep it up!"),
     icon: "success",
     timer: 2000,
     showConfirmButton: false,

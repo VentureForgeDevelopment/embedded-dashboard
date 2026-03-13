@@ -2,27 +2,24 @@
   <div class="glossary-container" :class="{ 'is-loading': loading }">
     <SlideInNotification
       :show="showSuccessNotification"
-      message="Success!"
+      :message="$t('Success!')"
       type="success"
     />
     <SlideInNotification
       :show="showFailNotification"
-      message="Failure.."
+      :message="$t('Failure..')"
       type="error"
     />
     <SlideInNotification
       :show="showGenericFailNotification"
-      message="An error occurred. Please try again later."
+      :message="$t('An error occurred. Please try again later.')"
       type="error"
     />
 
     <div class="glossary-header">
-      <h3 class="section-title">Glossary Rules</h3>
+      <h3 class="section-title">{{ $t('Glossary Rules') }}</h3>
       <p class="glossary-description">
-        Define glossary rules to exclude specific keywords from translation or
-        replace them with a set term. Exclusions can be global (for all
-        languages) or language-specific. Replacements must specify a target
-        language.
+        {{ $t('Define glossary rules to exclude specific keywords from translation or replace them with a set term. Exclusions can be global (for all languages) or language-specific. Replacements must specify a target language.') }}
       </p>
     </div>
 
@@ -31,7 +28,7 @@
       <div class="filter-bar">
         <div class="filter-group">
           <div class="filter-header">
-            <div class="filter-label">Filter by Language:</div>
+            <div class="filter-label">{{ $t('Filter by Language:') }}</div>
           </div>
           <div class="filter-tags">
             <button
@@ -40,7 +37,7 @@
               @click="toggleGlobalFilter"
             >
               <span v-html="globalIcon" class="lang-flag"></span>
-              Global Rules
+              {{ $t('Global Rules') }}
             </button>
             <button
               v-for="lang in availableLanguages"
@@ -58,39 +55,38 @@
                 class="lang-flag"
               ></span>
               {{ lang.name }}
-              <span v-if="!lang.isActive" class="inactive-badge">inactive</span>
+              <span v-if="!lang.isActive" class="inactive-badge">{{ $t('inactive') }}</span>
             </button>
           </div>
           <div v-if="hasInactiveLanguageSelected" class="language-warning">
-            ⚠️ One or more selected languages are not currently active on your
-            toolbar
+            {{ $t('One or more selected languages are not currently active on your toolbar') }}
           </div>
         </div>
       </div>
 
       <div class="rule-type-filter-bar">
-        <div class="rule-type-label">Rule Type:</div>
+        <div class="rule-type-label">{{ $t('Rule Type:') }}</div>
         <div class="rule-type-buttons">
           <button
             class="btn btn-outline btn-small"
             :class="{ active: ruleTypeFilter === 'all' }"
             @click="ruleTypeFilter = 'all'"
           >
-            All Types
+            {{ $t('All Types') }}
           </button>
           <button
             class="btn btn-outline btn-small"
             :class="{ active: ruleTypeFilter === 'exclude' }"
             @click="ruleTypeFilter = 'exclude'"
           >
-            Exclusions
+            {{ $t('Exclusions') }}
           </button>
           <button
             class="btn btn-outline btn-small"
             :class="{ active: ruleTypeFilter === 'replace' }"
             @click="ruleTypeFilter = 'replace'"
           >
-            Replacements
+            {{ $t('Replacements') }}
           </button>
         </div>
       </div>
@@ -99,25 +95,25 @@
         <div class="search-box">
           <button class="btn btn-primary btn-small" @click="addRule">
             <Plus
-              size="20"
+              size=20
               style="
                 display: flex;
                 justify-content: center;
                 align-items: center;
               "
             />
-            Add Rule
+            {{ $t('Add Rule') }}
           </button>
           <input
             type="text"
             v-model="searchQuery"
-            placeholder="Search rules..."
+            :placeholder="$t('Search rules...')"
             class="search-input"
           />
         </div>
         <div class="filter-stats">
-          Showing {{ paginatedRules.length }} of
-          {{ searchFilteredRules.length }} rules
+          {{ $t('Showing') }} {{ paginatedRules.length }} {{ $t('of') }}
+          {{ searchFilteredRules.length }} {{ $t('rules') }}
         </div>
       </div>
 
@@ -125,10 +121,10 @@
         <table class="glossary-table">
           <thead>
             <tr>
-              <th>Keyword/Phrase</th>
-              <th>Rule Type</th>
-              <th>Language/Scope</th>
-              <th>Replacement</th>
+              <th>{{ $t('Keyword/Phrase') }}</th>
+              <th>{{ $t('Rule Type') }}</th>
+              <th>{{ $t('Language/Scope') }}</th>
+              <th>{{ $t('Replacement') }}</th>
               <th class="action-column"></th>
             </tr>
           </thead>
@@ -147,7 +143,7 @@
                 <td data-label="Keyword/Phrase">
                   <LlInput
                     label="Keyword/Phrase"
-                    placeholder="e.g. BrandName"
+                    :placeholder="$t('e.g. BrandName')"
                     v-model="rule.source_phrase"
                     :id="`source_phrase_${rule.id}`"
                     @update:modelValue="markAsDirty(rule)"
@@ -173,8 +169,8 @@
                     :class="{ 'has-error': ruleErrors[rule.id]?.type }"
                     :disabled="ruleSavingStates[rule.id]"
                   >
-                    <option value="exclude">Exclude</option>
-                    <option value="replace">Replace with</option>
+                    <option value="exclude">{{ $t('Exclude') }}</option>
+                    <option value="replace">{{ $t('Replace with') }}</option>
                   </select>
                   <div v-if="ruleErrors[rule.id]?.type" class="error-message">
                     {{
@@ -216,7 +212,7 @@
                   <LlInput
                     v-if="rule.type === 'replace'"
                     label="Replacement Phrase *"
-                    placeholder="e.g. NombreDeMarca"
+                    :placeholder="$t('e.g. NombreDeMarca')"
                     v-model="rule.target_phrase"
                     :id="`target_phrase_${rule.id}`"
                     @update:modelValue="markAsDirty(rule)"
@@ -240,7 +236,7 @@
                     class="btn btn-outline btn-undo"
                     @click="undoChanges(rule)"
                     :disabled="ruleSavingStates[rule.id]"
-                    title="Undo Changes"
+                    :title="$t('Undo Changes')"
                   >
                     <Undo
                       style="
@@ -288,7 +284,7 @@
                     class="btn btn-outline btn-delete"
                     @click="removeRule(rule, index)"
                     :disabled="ruleSavingStates[rule.id]"
-                    title="Delete Rule"
+                    :title="$t('Delete Rule')"
                   >
                     <Close
                       class="delete-icon"
@@ -298,7 +294,7 @@
                         align-items: center;
                       "
                     />
-                    <span class="delete-text">Delete</span>
+                    <span class="delete-text">{{ $t('Delete') }}</span>
                   </button>
                 </td>
               </tr>
@@ -324,31 +320,31 @@
           :disabled="currentPage === 1"
           @click="currentPage = 1"
         >
-          First
+          {{ $t('First') }}
         </button>
         <button
           class="pagination-btn"
           :disabled="currentPage === 1"
           @click="currentPage--"
         >
-          Previous
+          {{ $t('Previous') }}
         </button>
         <span class="pagination-info">
-          Page {{ currentPage }} of {{ totalPages }}
+          {{ $t('Page') }} {{ currentPage }} {{ $t('of') }} {{ totalPages }}
         </span>
         <button
           class="pagination-btn"
           :disabled="currentPage === totalPages"
           @click="currentPage++"
         >
-          Next
+          {{ $t('Next') }}
         </button>
         <button
           class="pagination-btn"
           :disabled="currentPage === totalPages"
           @click="currentPage = totalPages"
         >
-          Last
+          {{ $t('Last') }}
         </button>
       </div>
     </div>

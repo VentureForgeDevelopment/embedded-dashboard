@@ -10,10 +10,10 @@
         <div v-if="checkoutProduct">
           <p>
             <span v-if="!show" class="expand-drawer-cta">
-              Click Here to Activate Translation
+              {{ $t('Click Here to Activate Translation') }}
             </span>
             <span v-else>
-              Step 3 of 3 · Activate Translation
+              {{ $t('Step 3 of 3 · Activate Translation') }}
             </span>
           </p>
         </div>
@@ -21,15 +21,15 @@
           <button
             type="button"
             class="close-button"
-            :aria-label="show ? 'Collapse' : 'Expand'"
+            :aria-label="show ? $t('Collapse') : $t('Expand')"
             @click.stop="handleHeaderClick"
           >
-            <ChevronUp v-if="show && !checkoutProduct" size="35" fill-color="black" class="header-icon-fc has-tooltip" />
-            <ChevronDown v-else size="35" fill-color="black" class="header-icon-fc has-tooltip" />
+            <ChevronUp v-if="show && !checkoutProduct" size=35 fill-color="black" class="header-icon-fc has-tooltip" />
+            <ChevronDown v-else size=35 fill-color="black" class="header-icon-fc has-tooltip" />
 
             <span
               class="tooltip-container"
-              data-tooltip="Back"
+              :data-tooltip="$t('Back')"
               style="transform:translate(-25px, -15px)"
             ></span>
           </button>
@@ -51,27 +51,27 @@
 
             <ProductPreview
               v-if="initial_onboard_setup"
-              :title="product.name === 'Starter' ? 'Standard' : product.name"
-              body="Go global in minutes. Instantly translate your website into over 20 languages, complete with our advanced text-to-speech engine. No coding required."
+              :title="$t(product.name === 'Starter' ? 'Standard' : product.name)"
+              :body="$t('Go global in minutes. Instantly translate your website into over 20 languages, complete with our advanced text-to-speech engine. No coding required.')"
             />
             <ProductPreview
               v-else
-              title="Start Translating Your Website Today"
-              body="Activate AI-powered translation for your site. Nothing goes live until you install the translator."
+              :title="$t('Start Translating Your Website Today')"
+              :body="$t('Activate AI-powered translation for your site. Nothing goes live until you install the translator.')"
             />
 
             <div class="checkout-selection-details">
               <p class="checkout-selection-details-header">
-                You're Setting Up:
+                {{ $t("You're Setting Up:") }}
               </p>
               <p class="selected-domain">
-                <span class="domain-label">Website:</span>
+                <span class="domain-label">{{ $t('Website:') }}</span>
                 <span class="domain-value">
                   {{ domain }}
                 </span>
               </p>
               <div class="selected-languages">
-                Languages:
+                {{ $t('Languages:') }}
                 <span>
                   <ul class="selected-languages">
                     <li
@@ -89,7 +89,7 @@
                 </span>
               </div>
 
-              <p class="product">Plan: {{ product.name }}</p>
+              <p class="product">{{ $t('Plan:') }} {{ $t(product.name === 'Starter' ? 'Standard' : product.name) }}</p>
             </div>
 
             <div
@@ -98,7 +98,7 @@
                 selected_addon_products && selected_addon_products.length > 0
               "
             >
-              <p class="addon-selection-details-title">Optional Add-Ons:</p>
+              <p class="addon-selection-details-title">{{ $t('Optional Add-Ons:') }}</p>
               <span
                 v-for="addonProduct in addon_products"
                 :key="addonProduct.id"
@@ -139,11 +139,10 @@
               style="padding-top: 10px"
             >
               <p style="font-weight: bold; color: var(--primary-color)">
-                No Payment Required
+                {{ $t('No Payment Required') }}
               </p>
               <p style="font-size: 14px; color: var(--text-secondary); margin: 0.5rem 0;">
-                Start translating your website for free. Upgrade anytime to
-                unlock more features.
+                {{ $t('Start translating your website for free. Upgrade anytime to unlock more features.') }}
               </p>
             </div>
             <!-- Shopify paid tier - no payment method needed -->
@@ -153,10 +152,10 @@
               style="padding-top: 10px"
             >
               <p style="font-weight: bold; color: var(--primary-color)">
-                Billing via Shopify
+                {{ $t('Billing via Shopify') }}
               </p>
               <p style="font-size: 14px; color: var(--text-secondary); margin: 0.5rem 0;">
-                Payment will be processed through your Shopify account.
+                {{ $t('Payment will be processed through your Shopify account.') }}
               </p>
             </div>
             <!-- Paid tier - payment method section -->
@@ -165,13 +164,13 @@
                 v-if="defaultPaymentMethod && !creating_new_method"
                 style="padding-top: 10px"
               >
-                <PaymentMethods label="Payment Method" />
+                <PaymentMethods :label="$t('Payment Method')" />
                 <button
                   class="btn btn-link"
                   v-if="!creating_new_method"
                   @click="creating_new_method = true"
                 >
-                  Add New Payment Method
+                  {{ $t('Add New Payment Method') }}
                 </button>
               </div>
               <div
@@ -191,7 +190,7 @@
                       margin-right: 5px;
                     "
                   />
-                  back
+                  {{ $t('back') }}
                 </button>
                 <CreatePaymentMethod
                   from="finalize_checkout"
@@ -279,7 +278,7 @@
                       ${{
                         parseFloat(prorationPreview.inverted_amount).toFixed(2)
                       }}
-                      <span class="small-text"> (Prorated Cost)</span>
+                      <span class="small-text"> {{ $t('(Prorated Cost)') }}</span>
                     </p>
 
                     <p
@@ -306,18 +305,18 @@
                     >
                       ${{ realCost }}
                     </span>
-                    <span v-else-if="!initial_onboard_setup && !isFreeTier">$1 to get started today</span>
-                    <span v-else> Free Forever.</span>
+                    <span v-else-if="!initial_onboard_setup && !isFreeTier">{{ $t('$1 to get started today') }}</span>
+                    <span v-else> {{ $t('Free Forever.') }}</span>
 
-                    <span v-if="initial_onboard_setup" class="small-text"> Due Today</span>
+                    <span v-if="initial_onboard_setup" class="small-text"> {{ $t('Due Today') }}</span>
                   </span>
                   <span class="actual-price-description">
                     <span v-if="!isFreeTier">
                       Then ${{ parseFloat(price.unit_amount).toFixed(2) }} /
                       {{ price.recurring.interval }}.
                     </span>
-                    <span v-if="!isFreeTier"> Cancel anytime.</span>
-                    <span v-else>Upgrade anytime.</span>
+                    <span v-if="!isFreeTier"> {{ $t('Cancel anytime.') }}</span>
+                    <span v-else>{{ $t('Upgrade anytime.') }}</span>
                     <span
                       class="usage-based-addon-description"
                       v-if="
@@ -340,7 +339,7 @@
                               selectCorrectAddonPrice(addonProduct).unit_amount,
                             ).toFixed(2)
                           }}
-                          per event (<span class="small-text">{{
+                          {{ $t('per event') }} (<span class="small-text">{{
                             addonProduct.name
                           }}</span
                           >)
@@ -370,7 +369,7 @@
                 { 'hide-coupon-box': !initial_onboard_setup || isFreeTier || isShopifyPlatform },
               ]"
             >
-              <label for="coupon_code">Coupon Code</label>
+              <label for="coupon_code">{{ $t('Coupon Code') }}</label>
               <div class="coupon-input-group">
                 <LlInput
                   v-model="coupon_code"
@@ -394,8 +393,8 @@
                   @click="validateCouponCode"
                 >
                   <span v-if="!validatingCoupon">
-                    <span v-if="!discountAmount"> Add </span>
-                    <span v-else> Added! </span>
+                    <span v-if="!discountAmount"> {{ $t('Add') }} </span>
+                    <span v-else> {{ $t('Added!') }} </span>
                   </span>
                   <span v-else>
                     <div class="loading-spinner-inline"></div>
@@ -417,11 +416,11 @@
               >
                 <span v-if="!loading">
                   <span v-if="current_subscription && isFreeTier">
-                    Confirm Changes
+                    {{ $t('Confirm Changes') }}
                   </span>
-                  <span v-else> Activate My Translation </span>
+                  <span v-else> {{ $t('Activate My Translation') }} </span>
                 </span>
-                <span v-else> Loading... </span>
+                <span v-else> {{ $t('Loading...') }} </span>
               </button>
               <!-- Shopify paid checkout - no payment method needed -->
               <button
@@ -430,10 +429,10 @@
                 @click="current_subscription ? handleUpdate() : handleCheckout()"
               >
                 <span v-if="!loading">
-                  <span v-if="current_subscription">Confirm Changes</span>
-                  <span v-else>Subscribe via Shopify</span>
+                  <span v-if="current_subscription">{{ $t('Confirm Changes') }}</span>
+                  <span v-else>{{ $t('Subscribe via Shopify') }}</span>
                 </span>
-                <span v-else>Loading...</span>
+                <span v-else>{{ $t('Loading...') }}</span>
               </button>
               <!-- Paid checkout with existing payment method -->
               <button
@@ -450,19 +449,19 @@
                       (planComparison && planComparison.type === 'upgrade' && initial_onboard_setup)
                     "
                   >
-                    Complete Purchase
+                    {{ $t('Complete Purchase') }}
                   </span>
-                  <span v-else-if="!initial_onboard_setup">Start My $1 Trial</span>
-                  <span v-else> Confirm Changes </span>
+                  <span v-else-if="!initial_onboard_setup">{{ $t('Start My $1 Trial') }}</span>
+                  <span v-else> {{ $t('Confirm Changes') }} </span>
                 </span>
-                <span v-else> Loading... </span>
+                <span v-else> {{ $t('Loading...') }} </span>
               </button>
             </div>
             <span v-if="!initial_onboard_setup && !isEmbedded" class="script-assurance-msg">
-              Install the translator and go live when you’re ready.
+              {{ $t("Install the translator and go live when you're ready.") }}
             </span>
             <span v-else class="script-assurance-msg">
-              Your translator will be automatically installed.
+              {{ $t('Your translator will be automatically installed.') }}
             </span>
           </div>
         </div>
@@ -470,9 +469,9 @@
           <div class="loading-container">
             <div class="loading-spinner"></div>
             <p v-if="loadingProrationDiscount" style="font-weight: bold">
-              Loading Proration Discount...
+              {{ $t('Loading Proration Discount...') }}
             </p>
-            <p v-else style="font-weight: bold">Finalizing purchase...</p>
+            <p v-else style="font-weight: bold">{{ $t('Finalizing purchase...') }}</p>
           </div>
         </div>
       </div>

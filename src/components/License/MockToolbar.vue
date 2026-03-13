@@ -20,7 +20,7 @@
           </svg>
           <span class="panel-title">Select Language</span>
         </span>
-        <button @click="toggleToolbar" class="close-button" title="Close">
+        <button @click="toggleToolbar" class="close-button" :title="$t('Close')">
           &times;
         </button>
       </div>
