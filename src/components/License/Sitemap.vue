@@ -11,16 +11,37 @@
       type="error"
     />
 
+    <!-- Full overlay while pre-caching or sitemap is generating -->
+    <Transition name="overlay-fade">
+      <div v-if="isGeneratingOverlay" class="sitemap-generating-overlay">
+        <div class="generating-content">
+          <div class="generating-spinner"></div>
+          <h3 class="generating-title">{{ overlayTitle }}</h3>
+          <p class="generating-description">{{ overlayDescription }}</p>
+          <p v-if="!translationsAreDone && preCacheStatus?.percentage > 0" class="generating-progress">
+            {{ preCacheStatus.percentage }}% translated
+          </p>
+          <p class="generating-hint">{{ overlayHint }}</p>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Header -->
     <div class="sitemap-header">
-      <h3 class="section-title">{{ $t('Sitemap Manager') }}</h3>
+      <div class="sitemap-header-top">
+        <h3 class="section-title">{{ $t('Sitemap Manager') }}</h3>
+        <div class="sitemap-header-info">
+          <span class="header-stat"><strong>{{ sourcePageCount }}</strong> {{ sourcePageCount === 1 ? $t('page') : $t('pages') }}</span>
+          <span class="header-stat"><strong>{{ languages.length }}</strong> {{ languages.length === 1 ? $t('language') : $t('languages') }}</span>
+        </div>
+      </div>
       <p class="sitemap-description">
         {{ $t('Manage your sitemap URLs, translated slugs, and download sitemaps in HTML or XML format.') }}
       </p>
     </div>
 
-    <!-- Sitemap Status Bar -->
-    <div class="sitemap-status-bar">
+    <!-- Sitemap Status Bar (only shown when there's status to display) -->
+    <div v-if="sitemapGeneratedAt || regenerationStatus?.status === 'regenerating' || regenerationStatus?.status === 'pending'" class="sitemap-status-bar">
       <div class="status-info">
         <span v-if="sitemapGeneratedAt" class="last-built">
           {{ $t('Last built:') }} {{ formatDateTime(sitemapGeneratedAt) }}
@@ -34,14 +55,6 @@
           {{ $t('Pending') }} ({{ regenerationStatus.regenerate_in_seconds }}s)
         </span>
       </div>
-      <button
-        class="btn btn-small btn-outline"
-        @click="triggerRegeneration"
-        :disabled="regenerating || regenerationStatus?.status === 'regenerating'"
-      >
-        <Refresh class="btn-icon" :class="{ spinning: regenerating }" />
-        <span>{{ $t('Regenerate Now') }}</span>
-      </button>
     </div>
 
     <!-- Settings Toggle (for use_translated_urls) -->
@@ -357,50 +370,49 @@
       <div class="overview-card">
         <div class="card-header">
           <h2>{{ $t('Sitemap Source') }}</h2>
-          <div class="format-buttons">
-            <button
-              @click="selectFormat('xml')"
-              :class="['btn', 'btn-small', format === 'xml' ? 'btn-primary' : 'btn-outline']"
-            >
-              <Code class="btn-icon" />
-              <span>{{ $t('XML') }}</span>
-            </button>
-            <button
-              @click="selectFormat('html')"
-              :class="['btn', 'btn-small', format === 'html' ? 'btn-primary' : 'btn-outline']"
-            >
-              <FileDocument class="btn-icon" />
-              <span>{{ $t('HTML') }}</span>
-            </button>
+          <div class="source-header-actions">
+            <div class="format-buttons">
+              <button
+                @click="selectFormat('xml')"
+                :class="['btn', 'btn-small', format === 'xml' ? 'btn-primary' : 'btn-outline']"
+              >
+                <Code class="btn-icon" />
+                <span>{{ $t('XML') }}</span>
+              </button>
+              <button
+                @click="selectFormat('html')"
+                :class="['btn', 'btn-small', format === 'html' ? 'btn-primary' : 'btn-outline']"
+              >
+                <FileDocument class="btn-icon" />
+                <span>{{ $t('HTML') }}</span>
+              </button>
+            </div>
+            <div class="action-buttons">
+              <button @click="handleCopy" class="btn btn-small btn-icon-only btn-outline" :disabled="sourceLoading || !sourceContent" :title="copied ? $t('Copied!') : $t('Copy')">
+                <ContentCopy v-if="!copied" />
+                <Check v-else class="icon-success" />
+              </button>
+              <button @click="handleDownload" class="btn btn-small btn-icon-only btn-primary" :disabled="sourceLoading || !sourceContent" :title="$t('Download')">
+                <Download v-if="!downloaded" />
+                <Check v-else />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="card-header format-header">
-          <div class="sitemap-info">
-            <span class="info-badge">{{ sourcePageCount }} {{ $t('pages') }}</span>
-            <span class="info-badge">{{ languages.length }} {{ $t('languages') }}</span>
-            <!-- Language selector for HTML -->
-            <select
-              v-if="format === 'html' && languages.length > 0"
-              v-model="selectedSourceLang"
-              @change="fetchSourceContent"
-              class="lang-select"
+        <!-- Language selector tabs (HTML format only) -->
+        <div v-if="format === 'html' && languages.length > 0" class="card-header format-header">
+          <div class="lang-tabs">
+            <button
+              v-for="lang in languages"
+              :key="getLangCode(lang)"
+              class="lang-tab"
+              :class="{ active: selectedSourceLang === getLangCode(lang) }"
+              @click="selectLang(lang)"
+              :title="getLangName(lang)"
             >
-              <option v-for="lang in languages" :key="getLangCode(lang)" :value="getLangCode(lang)">
-                {{ getLangCode(lang).toUpperCase() }}
-              </option>
-            </select>
-          </div>
-          <div class="action-buttons">
-            <button @click="handleCopy" class="btn btn-small btn-outline" :disabled="sourceLoading || !sourceContent">
-              <ContentCopy v-if="!copied" class="btn-icon" />
-              <Check v-else class="btn-icon icon-success" />
-              <span>{{ copied ? $t("Copied!") : $t("Copy") }}</span>
-            </button>
-            <button @click="handleDownload" class="btn btn-small btn-primary" :disabled="sourceLoading || !sourceContent">
-              <Download v-if="!downloaded" class="btn-icon" />
-              <Check v-else class="btn-icon" />
-              <span>{{ $t('Download') }}</span>
+              <span v-if="getLangFlag(getLangCode(lang))" class="lang-tab-flag" v-html="getLangFlag(getLangCode(lang))"></span>
+              <span class="lang-tab-code">{{ getLangCode(lang).toUpperCase() }}</span>
             </button>
           </div>
         </div>
@@ -455,6 +467,18 @@
       </div>
     </div>
 
+    <!-- Regenerate Sitemap -->
+    <div class="regenerate-section">
+      <button
+        class="btn btn-outline btn-danger-outline"
+        @click="confirmRegeneration"
+        :disabled="regenerating || regenerationStatus?.status === 'regenerating'"
+      >
+        <Refresh class="btn-icon" :class="{ spinning: regenerating }" />
+        <span>{{ $t('Regenerate Sitemap') }}</span>
+      </button>
+    </div>
+
   </div>
 </template>
 
@@ -464,7 +488,9 @@ import { onBeforeRouteLeave } from "vue-router"
 import api from "../../utils/api"
 import { config } from "../../config/environment"
 import { useAuthStore } from "../../stores/auth"
+import { usePreCacheStore } from "../../stores/precache"
 import SlideInNotification from "../SlideInNotification.vue"
+import Swal from "sweetalert2"
 import hljs from "highlight.js"
 import "highlight.js/styles/atom-one-dark.css"
 
@@ -486,6 +512,7 @@ import ClockOutline from "vue-material-design-icons/ClockOutline.vue"
 import CheckCircle from "vue-material-design-icons/CheckCircle.vue"
 
 const authStore = useAuthStore()
+const preCacheStore = usePreCacheStore()
 
 const props = defineProps({
   license_id: {
@@ -517,6 +544,78 @@ const useTranslatedUrls = ref(false)
 const sourceLanguage = ref('en')
 const languages = ref([])
 const domain = ref('')
+
+// Language flags (shared with localStorage for caching)
+const LANG_FLAGS_KEY = 'wl_lang_flags'
+function loadCachedFlags() {
+  try { return JSON.parse(localStorage.getItem(LANG_FLAGS_KEY) || '{}') } catch { return {} }
+}
+const langFlags = reactive(loadCachedFlags())
+
+async function fetchLangFlags(codes) {
+  const missing = codes.filter(c => !langFlags[c])
+  if (missing.length === 0) return
+  await Promise.all(
+    missing.map(code =>
+      api.get(`${config.appApiUrl}languages/${code}/flag`)
+        .then(res => { langFlags[code] = res.data?.flag || '' })
+        .catch(() => {})
+    )
+  )
+  try { localStorage.setItem(LANG_FLAGS_KEY, JSON.stringify(langFlags)) } catch {}
+}
+
+function getLangFlag(code) {
+  return langFlags[code] || ''
+}
+
+function getLangName(lang) {
+  if (typeof lang === 'object' && lang.name) return lang.name
+  return getLangCode(lang).toUpperCase()
+}
+
+function selectLang(lang) {
+  selectedSourceLang.value = getLangCode(lang)
+  fetchSourceContent()
+}
+
+// Pre-cache status
+const preCacheStatus = computed(() => licenseId.value ? preCacheStore.getStatus(licenseId.value) : null)
+// pipelineActive = crawl + translations + sitemap gen (full pipeline)
+const preCachePipelineActive = computed(() => preCacheStatus.value?.pipelineActive === true)
+
+const isGeneratingOverlay = computed(() => {
+  // Show overlay for the full pre-cache pipeline (crawl + translate + sitemap gen)
+  return preCachePipelineActive.value
+})
+
+const translationsAreDone = computed(() => preCacheStatus.value?.status === 'completed')
+
+const overlayTitle = computed(() => {
+  if (translationsAreDone.value) return 'Generating Sitemap'
+  return 'Pre-Caching Translations'
+})
+
+const overlayDescription = computed(() => {
+  const s = preCacheStatus.value
+  if (translationsAreDone.value) {
+    return 'All pages have been translated. Your multilingual sitemap is now being generated with hreflang annotations and translated URL slugs.'
+  }
+  if (!s || s.pages_translated === 0) {
+    return 'Discovering and translating your website pages. The sitemap will be generated automatically once all pages are translated.'
+  }
+  if (s.pages_discovered > 0) {
+    return `Translating your website pages (${s.pages_translated} of ${s.pages_discovered} complete). The sitemap will be generated automatically once all translations finish.`
+  }
+  return `Translating your website pages (${s.pages_translated} pages done so far). The sitemap will be generated automatically once all translations finish.`
+})
+
+const overlayHint = computed(() => {
+  if (translationsAreDone.value) {
+    return 'This usually takes less than a minute. The page will update automatically when complete.'
+  }
+  return 'This may take several minutes depending on the size of your site. You can navigate away and come back — progress will continue in the background.'
+})
 
 // UI State
 const showAddForm = ref(false)
@@ -865,6 +964,10 @@ async function fetchManifest() {
     })
     sourceLanguage.value = props.license?.settings?.source_language || 'en'
 
+    // Fetch flags for all languages
+    const langCodes = languages.value.map(l => getLangCode(l))
+    fetchLangFlags(langCodes)
+
     // Initialize local translations with existing values or defaults
     pages.value.forEach((page) => {
       const translations = { ...(page.url_translations || {}) }
@@ -1088,9 +1191,35 @@ async function fetchRegenerationStatus() {
         },
       }
     )
+    const prev = regenerationStatus.value?.status
     regenerationStatus.value = response.data
+
+    // If status just transitioned to up_to_date from pending/regenerating, refresh data
+    if (response.data.status === 'up_to_date' && (prev === 'pending' || prev === 'regenerating')) {
+      fetchManifest()
+    }
   } catch (error) {
     console.error("Failed to fetch regeneration status:", error)
+  }
+}
+
+async function confirmRegeneration() {
+  const result = await Swal.fire({
+    title: "Regenerate Sitemap?",
+    html: `<p>This will <strong>completely overwrite</strong> your existing sitemap with a freshly generated version.</p>
+           <p style="margin-top: 0.75rem; color: #dc2626; font-weight: 600;">This action cannot be undone.</p>
+           <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #6b7280;">All current sitemap data including custom edits and translated slugs will be permanently replaced.</p>`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, regenerate",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  })
+
+  if (result.isConfirmed) {
+    await triggerRegeneration()
   }
 }
 
@@ -1225,6 +1354,22 @@ function handleDownload() {
 onMounted(() => {
   fetchManifest()
 
+  // Start polling pre-cache status for this license
+  if (licenseId.value) {
+    preCacheStore.startPolling(licenseId.value)
+  }
+
+  // Watch for full pipeline completion (crawl + translate + sitemap gen) and refresh manifest
+  watch(
+    () => preCacheStatus.value?.pipelineActive,
+    (active, wasActive) => {
+      if (wasActive && !active) {
+        // Full pipeline finished — refresh sitemap data
+        fetchManifest()
+      }
+    }
+  )
+
   // Poll regeneration status every 10 seconds if regenerating
   const statusInterval = setInterval(() => {
     if (regenerationStatus.value?.status === 'regenerating' ||
@@ -1243,16 +1388,103 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
+  position: relative;
 }
 
 .sitemap-page.is-loading {
   opacity: 0.7;
 }
 
+/* Generating Overlay */
+.sitemap-generating-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.92));
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+}
+.generating-content {
+  text-align: center;
+  max-width: 420px;
+  padding: 3rem 2rem;
+}
+.generating-spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1.5rem;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: overlay-spin 0.9s linear infinite;
+}
+@keyframes overlay-spin {
+  to { transform: rotate(360deg); }
+}
+.generating-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 0.75rem;
+}
+.generating-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+.generating-progress {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0 0 0.75rem;
+}
+.generating-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9ca3af);
+  margin: 0;
+}
+.overlay-fade-enter-active {
+  transition: opacity 0.3s ease;
+}
+.overlay-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
 /* Header */
 .sitemap-header {
   margin-bottom: 1.5rem;
   gap: 1rem;
+}
+.sitemap-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sitemap-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+.header-stat {
+  padding: 4px 10px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--text-secondary, #6b7280);
+}
+.header-stat strong {
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  font-size: 1rem;
 }
 
 .section-title {
@@ -2003,25 +2235,58 @@ onMounted(() => {
 }
 
 /* Language selector for HTML source */
-.lang-select {
-  padding: 4px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  background: white;
-  cursor: pointer;
-}
-
-.lang-select:focus {
-  outline: none;
-  border-color: #2563eb;
-}
-
 /* Language Tabs */
-.language-tabs {
+.lang-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lang-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  background: var(--card-bg, #fff);
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lang-tab:hover:not(.active) {
+  background: var(--bg-secondary, #f9fafb);
+  border-color: #d1d5db;
+}
+.lang-tab.active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+.lang-tab-flag {
+  display: flex;
+  align-items: center;
+  width: 18px;
+  height: 14px;
+}
+.lang-tab-flag :deep(svg),
+.lang-tab-flag :deep(img) {
+  width: 18px;
+  height: 14px;
+  border-radius: 2px;
+}
+.lang-tab-code {
+  line-height: 1;
+}
+.lang-tab-indicator {
+  display: flex;
+  align-items: center;
+  color: #2563eb;
+}
+.lang-tab-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .lang-tab {
@@ -2046,9 +2311,31 @@ onMounted(() => {
 }
 
 /* Format Buttons */
+.source-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .format-buttons {
   display: flex;
   gap: 8px;
+}
+.btn-icon-only {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px !important;
+  min-width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+.btn-icon-only .material-design-icon {
+  width: 16px;
+  height: 16px;
+}
+.btn-icon-only .material-design-icon > .material-design-icon__svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Preview */
@@ -2272,5 +2559,21 @@ onMounted(() => {
 .scrollable::-webkit-scrollbar-thumb:hover,
 .code-content::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* Regenerate Section */
+.regenerate-section {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-danger-outline {
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+.btn-danger-outline:hover:not(:disabled) {
+  background: #fef2f2 !important;
 }
 </style>

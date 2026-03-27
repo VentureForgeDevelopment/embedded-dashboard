@@ -19,6 +19,30 @@ const isSaving = ref(false)
 
 const router = useRouter()
 
+const searchQuery = ref("")
+const currentPage = ref(1)
+const perPage = 9
+
+const filteredWebsites = computed(() => {
+  if (!searchQuery.value.trim()) return websites.value
+  const q = searchQuery.value.toLowerCase()
+  return websites.value.filter(w =>
+    w.name?.toLowerCase().includes(q) ||
+    w.license_key?.toLowerCase().includes(q)
+  )
+})
+
+const totalPages = computed(() => Math.ceil(filteredWebsites.value.length / perPage))
+const needsPagination = computed(() => filteredWebsites.value.length > perPage)
+const paginatedWebsites = computed(() => {
+  if (!needsPagination.value) return filteredWebsites.value
+  const start = (currentPage.value - 1) * perPage
+  return filteredWebsites.value.slice(start, start + perPage)
+})
+
+// Reset to page 1 when search changes
+watch(searchQuery, () => { currentPage.value = 1 })
+
 const accountRole = computed(() => {
   return authStore.currentAccountRole
 })
@@ -147,6 +171,15 @@ onMounted(() => {
       </button>
     </div>
 
+    <div v-if="websites.length > perPage" class="search-bar">
+      <input
+        type="text"
+        v-model="searchQuery"
+        :placeholder="$t('Search by domain...')"
+        class="search-input"
+      />
+    </div>
+
     <!-- Loading Overlay -->
     <div v-if="isSaving" class="loading-overlay">
       <div class="loading-spinner"></div>
@@ -194,10 +227,18 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- No Search Results -->
+    <div v-else-if="filteredWebsites.length === 0 && searchQuery.trim()" class="empty-container">
+      <div class="empty-message">
+        <h3>{{ $t('No Results') }}</h3>
+        <p>{{ $t('No websites match') }} "{{ searchQuery }}"</p>
+      </div>
+    </div>
+
     <!-- Websites Grid -->
     <div v-else class="websites-grid">
       <div
-        v-for="website in websites"
+        v-for="website in paginatedWebsites"
         :key="website.id"
         class="website-card"
         :class="{ 'saved-flash': savedStates[website.id] }"
@@ -207,7 +248,7 @@ onMounted(() => {
           <h3 class="website-name">{{ website.name }}</h3>
           <div class="website-badges">
             <span v-if="website.type === 'free'" class="website-badge free-tier">
-              {{ $t('Free Plan') }}
+              {{ $t('Free') }}
             </span>
             <span class="website-status" :class="website.status.toLowerCase()">{{
               website.status
@@ -233,7 +274,7 @@ onMounted(() => {
           </div>
         </div>
         <div v-if="website.usage" class="website-usage-footer">
-          <div class="usage-ring-wrapper">
+          <div v-if="website.type === 'free'" class="usage-ring-wrapper">
             <svg class="usage-ring" viewBox="0 0 36 36">
               <circle class="usage-ring-bg" cx="18" cy="18" r="15.5" />
               <circle
@@ -251,6 +292,33 @@ onMounted(() => {
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="needsPagination" class="pagination">
+      <button
+        class="pagination-btn"
+        :disabled="currentPage === 1"
+        @click="currentPage--"
+      >
+        &laquo; {{ $t('Prev') }}
+      </button>
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        class="pagination-btn"
+        :class="{ active: page === currentPage }"
+        @click="currentPage = page"
+      >
+        {{ page }}
+      </button>
+      <button
+        class="pagination-btn"
+        :disabled="currentPage === totalPages"
+        @click="currentPage++"
+      >
+        {{ $t('Next') }} &raquo;
+      </button>
     </div>
   </div>
 </template>
@@ -275,7 +343,27 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Search */
+.search-bar {
+  margin-bottom: 1.5rem;
+  text-align:left;
+}
+.search-input {
+  width: 75%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--text-primary, #374151);
+  background: var(--card-bg, #fff);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.search-input:focus {
+  border-color: var(--primary-color, #667eea);
 }
 
 .title-section {
@@ -347,7 +435,7 @@ onMounted(() => {
 .website-header {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   margin-bottom: 1rem;
 }
@@ -356,11 +444,13 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 1rem 0 0;
-  max-width: 300px;
+  margin: 0;
+  max-width: 190px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .website-badges {
@@ -368,6 +458,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .website-badge {
@@ -581,5 +672,42 @@ onMounted(() => {
   font-size: 0.75rem;
   color: var(--text-secondary);
   text-align: left;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+.pagination-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #374151);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.pagination-btn:hover:not(:disabled):not(.active) {
+  background: var(--bg-secondary, #f3f4f6);
+}
+.pagination-btn.active {
+  background: var(--primary-color, #667eea);
+  color: #fff;
+  border-color: var(--primary-color, #667eea);
+}
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    width: 100%;
+  }
 }
 </style>

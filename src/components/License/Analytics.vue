@@ -39,6 +39,7 @@
             />
             <span class="toggle-slider"></span>
           </label>
+          <span class="toggle-assurance">{{ $t('Data tracked anonymously. GDPR compliant.') }}</span>
         </div>
       </div>
       <p class="header-subtitle">
@@ -105,8 +106,9 @@
               <span class="hero-detail-value">{{ limitData.current_period_remaining?.toLocaleString() ?? '---' }}</span>
             </div>
             <div class="hero-detail-item">
-              <span class="hero-detail-label">{{ $t('Plan') }}</span>
-              <span class="hero-detail-value plan-badge">{{ planLabel }}</span>
+              <span class="hero-detail-label">{{ $t('Total Visits') }}</span>
+              <span v-if="analyticsEnabled" class="hero-detail-value">{{ summary.total_visits?.toLocaleString() ?? '0' }}</span>
+              <span v-else class="hero-detail-value hero-detail-disabled">{{ $t('Not enabled') }}</span>
             </div>
           </div>
         </div>
@@ -163,7 +165,7 @@
 
       <!-- Usage History Chart -->
       <div class="overview-card chart-card" v-if="history.length > 0">
-        <h2 class="card-title">{{ $t('Usage History') }}</h2>
+        <h2 class="card-title">{{ $t('Monthly Usage') }}</h2>
         <div class="chart-container">
           <canvas ref="barCanvas"></canvas>
         </div>
@@ -230,11 +232,19 @@ async function toggleAnalytics(event) {
   }
 }
 
-const timePeriods = [
-  { label: "Last 30 Days", value: "30d" },
-  { label: "Last 60 Days", value: "60d" },
-  { label: "Last 90 Days", value: "90d" },
-]
+// Fetch max history to determine how many periods exist
+const availableHistory = ref([])
+
+const timePeriods = computed(() => {
+  const periods = [{ label: "Current Month", value: "30d" }]
+  if (availableHistory.value.length >= 2) {
+    periods.push({ label: "Last 2 Months", value: "60d" })
+  }
+  if (availableHistory.value.length >= 3) {
+    periods.push({ label: "Last 3 Months", value: "90d" })
+  }
+  return periods
+})
 
 const daysMap = { "30d": 30, "60d": 60, "90d": 90 }
 
@@ -362,6 +372,21 @@ function fetchUsage() {
   })
 }
 
+// Fetch max range once on mount to determine how many billing periods exist
+function fetchAvailableHistory() {
+  if (!props.license?.id) return
+  licenseStore.getLicenseUsage({
+    license_id: props.license.id,
+    days: 90,
+  }).then((res) => {
+    availableHistory.value = res.data?.data?.history ?? []
+    // Now fetch with the default period
+    fetchUsage()
+  }).catch(() => {
+    fetchUsage()
+  })
+}
+
 function animateWordCount() {
   const target = summary.value.words_translated
   if (!isFreeOrLimited.value && target > 0) {
@@ -430,14 +455,9 @@ function renderBarChart() {
   if (!barCanvas.value || history.value.length === 0) return
   if (barChart) barChart.destroy()
 
-  const ctx = barCanvas.value.getContext("2d")
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300)
-  gradient.addColorStop(0, "rgba(102, 126, 234, 0.3)")
-  gradient.addColorStop(1, "rgba(118, 75, 162, 0.02)")
-
   const labels = history.value.map((h) => {
     const start = new Date(h.period_start)
-    return start.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    return start.toLocaleDateString("en-US", { month: "short", year: "numeric" })
   })
   const wordsData = history.value.map((h) => h.words_translated)
   const visitsData = history.value.map((h) => h.total_visits ?? 0)
@@ -448,16 +468,10 @@ function renderBarChart() {
     {
       label: "Words Translated",
       data: wordsData,
+      backgroundColor: "rgba(102, 126, 234, 0.75)",
       borderColor: "#667eea",
-      borderWidth: 2.5,
-      backgroundColor: gradient,
-      fill: true,
-      tension: 0.4,
-      pointBackgroundColor: "#667eea",
-      pointBorderColor: "#fff",
-      pointBorderWidth: 2,
-      pointRadius: 4,
-      pointHoverRadius: 6,
+      borderWidth: 1,
+      borderRadius: 6,
       yAxisID: "y",
     },
   ]
@@ -466,22 +480,16 @@ function renderBarChart() {
     datasets.push({
       label: "Total Visits",
       data: visitsData,
+      backgroundColor: "rgba(16, 185, 129, 0.6)",
       borderColor: "#10b981",
-      borderWidth: 2,
-      backgroundColor: "rgba(16, 185, 129, 0.08)",
-      fill: true,
-      tension: 0.4,
-      pointBackgroundColor: "#10b981",
-      pointBorderColor: "#fff",
-      pointBorderWidth: 2,
-      pointRadius: 3,
-      pointHoverRadius: 5,
+      borderWidth: 1,
+      borderRadius: 6,
       yAxisID: "y1",
     })
   }
 
   barChart = new Chart(barCanvas.value, {
-    type: "line",
+    type: "bar",
     data: { labels, datasets },
     options: {
       responsive: true,
@@ -524,12 +532,17 @@ function renderBarChart() {
   })
 }
 
-watch(activePeriod, () => {
+watch(activePeriod, (newVal) => {
+  // Guard: if selected period no longer exists in options, reset to current month
+  if (!timePeriods.value.find(p => p.value === newVal)) {
+    activePeriod.value = '30d'
+    return
+  }
   fetchUsage()
 })
 
 onMounted(() => {
-  fetchUsage()
+  fetchAvailableHistory()
 })
 
 onUnmounted(() => {
@@ -580,8 +593,15 @@ onUnmounted(() => {
 /* Analytics Toggle */
 .analytics-toggle {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+.toggle-assurance {
+  font-size: 10px;
+  color: var(--text-secondary, #9ca3af);
+  width: 100%;
 }
 .toggle-label {
   font-size: 14px;
@@ -771,6 +791,12 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--text-primary, #111827);
   line-height: 1.2;
+}
+.hero-detail-disabled {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-secondary, #9ca3af);
 }
 .plan-badge {
   font-size: 20px;

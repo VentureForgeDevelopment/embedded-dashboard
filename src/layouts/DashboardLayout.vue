@@ -265,7 +265,7 @@ onUnmounted(() => {
                   align-items: center;
                 "
               />
-              {{ $t('Billing') }}
+              {{ $t('Subscriptions') }}
             </router-link>
             <a
               href="https://weblinguist.ai/affiliates/"
@@ -423,7 +423,7 @@ onUnmounted(() => {
                         align-items: center;
                       "
                     />
-                    {{ $t('Billing') }}
+                    {{ $t('Subscriptions') }}
                   </router-link>
                   <router-link
                     to="/edit-account"
@@ -593,7 +593,7 @@ onUnmounted(() => {
               @click="toggleMobileMenu"
             >
               <CreditCard class="nav-icon" />
-              {{ $t('Billing') }}
+              {{ $t('Subscriptions') }}
             </router-link>
             <a
               href="https://weblinguist.ai/affiliates/"
@@ -677,12 +677,8 @@ onUnmounted(() => {
   background: var(--bg-header-footer);
   border-top: 1px solid #05c7f2;
   box-shadow: var(--shadow);
-  position: sticky;
-  top: 0;
   z-index: 100;
   width: 100%;
-  left: 0;
-  right: 0;
 }
 
 .nav-container {

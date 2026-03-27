@@ -163,7 +163,7 @@ export async function saveLicenseToPlatform(payload) {
     throw new Error("Not in embedded mode.")
   }
 
-  const { license_id, license_key, subscription_id } = payload
+  const { license_id, license_key, subscription_id, dns_enabled } = payload
 
   if (c.platform === "shopify") {
     const headers = await getShopifyHeaders()
@@ -200,6 +200,7 @@ export async function saveLicenseToPlatform(payload) {
     formData.append("license_id", license_id)
     formData.append("license_key", license_key)
     formData.append("subscription_id", subscription_id || "")
+    formData.append("dns_enabled", dns_enabled ? "1" : "0")
 
     fetch(ajaxUrl, {
       method: "POST",

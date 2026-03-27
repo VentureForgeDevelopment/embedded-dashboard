@@ -1,9 +1,14 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue"
+import { ref, onMounted, onUnmounted, computed, watch } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { useLicenseStore } from "../stores/license"
+import { usePreCacheStore } from "../stores/precache"
 import { useRouter } from "vue-router"
+import api from "../utils/api"
+import { config } from "../config/environment"
 import Notifications from "../components/Notifications/Notifications.vue"
+import PreCacheProgressBar from "../components/PreCacheProgressBar.vue"
+import PreCacheToast from "../components/PreCacheToast.vue"
 import Plus from "vue-material-design-icons/Plus.vue"
 import Earth from "vue-material-design-icons/Earth.vue"
 import Pencil from "vue-material-design-icons/Pencil.vue"
@@ -11,9 +16,24 @@ import AccountGroup from "vue-material-design-icons/AccountGroup.vue"
 
 const authStore = useAuthStore()
 const licenseStore = useLicenseStore()
+const preCacheStore = usePreCacheStore()
 const router = useRouter()
 
 const showAllLicenses = ref(false)
+// Load cached flags from localStorage, keyed langCode -> SVG string
+const LANG_FLAGS_STORAGE_KEY = 'wl_lang_flags'
+function loadCachedFlags() {
+  try {
+    const stored = localStorage.getItem(LANG_FLAGS_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch { return {} }
+}
+function saveFlagsToStorage(flags) {
+  try {
+    localStorage.setItem(LANG_FLAGS_STORAGE_KEY, JSON.stringify(flags))
+  } catch { /* quota exceeded, ignore */ }
+}
+const langFlags = ref(loadCachedFlags())
 
 const licenses = computed(() => licenseStore.state.licenses || [])
 const hasLicenses = computed(() => licenses.value.length > 0)
@@ -40,6 +60,31 @@ function getPlanLabel(license) {
   return product.charAt(0).toUpperCase() + product.slice(1)
 }
 
+function getLicenseLanguages(license) {
+  return license.settings?.languages || []
+}
+
+function getLangFlag(code) {
+  return langFlags.value[code] || ''
+}
+
+async function fetchLangFlags(codes) {
+  // Only fetch codes not already in our cache (includes localStorage hits)
+  const missing = codes.filter((c) => !langFlags.value[c])
+  if (missing.length === 0) return
+  // Mark as loading to avoid duplicate requests
+  missing.forEach((c) => { langFlags.value[c] = '' })
+  await Promise.all(
+    missing.map((code) =>
+      api.get(`${config.appApiUrl}languages/${code}/flag`)
+        .then((res) => { langFlags.value[code] = res.data?.flag || '' })
+        .catch(() => {})
+    )
+  )
+  // Persist all flags to localStorage
+  saveFlagsToStorage(langFlags.value)
+}
+
 const greetings = [
   "Welcome back", // English
   "Bienvenue", // French
@@ -49,6 +94,27 @@ const greetings = [
 
 const currentGreeting = ref(greetings[0])
 let greetingInterval = null
+
+// Start pre-cache polling and fetch language flags once licenses are available
+watch(
+  () => licenseStore.state.licenses,
+  (newLicenses) => {
+    if (newLicenses && newLicenses.length > 0) {
+      const ids = newLicenses.map((l) => l.id)
+      preCacheStore.pollForLicenses(ids)
+
+      // Collect all unique language codes and fetch their flags
+      const allCodes = new Set()
+      newLicenses.forEach((l) => {
+        (l.settings?.languages || []).forEach((lang) => {
+          if (lang.code) allCodes.add(lang.code)
+        })
+      })
+      if (allCodes.size > 0) fetchLangFlags([...allCodes])
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   let currentIndex = 0
@@ -69,6 +135,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(greetingInterval)
+  preCacheStore.stopAllPolling()
 })
 </script>
 
@@ -84,50 +151,6 @@ onUnmounted(() => {
       <p class="page-subtitle">
         {{ $t("Here's what's happening with your websites today.") }}
       </p>
-    </div>
-
-    <!-- Usage Overview (per-license) -->
-    <div v-if="hasLicenses" class="usage-overview-section">
-      <h3 class="section-title">{{ $t('Usage Overview') }}</h3>
-      <div class="license-usage-list">
-        <div
-          v-for="license in visibleLicenses"
-          :key="license.id"
-          class="content-card license-usage-row"
-        >
-          <div class="usage-row-left">
-            <div class="usage-ring-wrapper">
-              <svg class="usage-ring" viewBox="0 0 36 36">
-                <circle class="usage-ring-bg" cx="18" cy="18" r="15.5" />
-                <circle
-                  class="usage-ring-fill"
-                  cx="18" cy="18" r="15.5"
-                  :stroke-dasharray="ringCircumference"
-                  :stroke-dashoffset="getRingOffset(license)"
-                />
-              </svg>
-              <span class="usage-ring-text">{{ Math.round(license.usage?.usage_percentage ?? 0) }}%</span>
-            </div>
-            <div class="usage-row-info">
-              <span class="license-domain">{{ license.domain_name || 'Unnamed License' }}</span>
-              <span class="usage-words">{{ (license.usage?.words_translated ?? 0).toLocaleString() }} {{ $t('words') }}</span>
-            </div>
-          </div>
-          <button
-            class="btn btn-small btn-outline see-more-btn"
-            @click="router.push({ name: 'manage-license-analytics', params: { id: license.id } })"
-          >
-            {{ $t('See More') }}
-          </button>
-        </div>
-      </div>
-      <button
-        v-if="hasMoreLicenses"
-        class="show-more-btn"
-        @click="showAllLicenses = !showAllLicenses"
-      >
-        {{ showAllLicenses ? $t('Show Less') : $t('Show More') }} ({{ sortedLicenses.length - 2 }} {{ $t('more') }})
-      </button>
     </div>
 
     <!-- Content Grid -->
@@ -197,10 +220,100 @@ onUnmounted(() => {
         <Notifications :show_header="false" />
       </div>
     </div>
+
+    <!-- Usage Overview (per-license) -->
+    <div v-if="hasLicenses" class="usage-overview-section">
+      <h3 class="section-title">{{ $t('Usage Overview') }}</h3>
+      <div class="license-usage-list">
+        <div
+          v-for="license in visibleLicenses"
+          :key="license.id"
+          class="content-card license-usage-card"
+        >
+          <div class="license-usage-row">
+          <div class="usage-row-left">
+            <!-- Usage ring: only for free tier -->
+            <div v-if="license.type === 'free'" class="usage-ring-wrapper">
+              <svg class="usage-ring" viewBox="0 0 36 36">
+                <circle class="usage-ring-bg" cx="18" cy="18" r="15.5" />
+                <circle
+                  class="usage-ring-fill"
+                  cx="18" cy="18" r="15.5"
+                  :stroke-dasharray="ringCircumference"
+                  :stroke-dashoffset="getRingOffset(license)"
+                />
+              </svg>
+              <span class="usage-ring-text">{{ Math.round(license.usage?.usage_percentage ?? 0) }}%</span>
+            </div>
+            <div class="usage-row-info">
+              <div class="usage-row-top">
+                <span class="license-domain">{{ license.domain_name || 'Unnamed License' }}</span>
+                <span class="plan-badge" :class="license.type === 'free' ? 'plan-free' : 'plan-paid'">{{ getPlanLabel(license) }}</span>
+              </div>
+              <div class="usage-row-stats">
+                <span class="usage-stat">{{ (license.usage?.words_translated ?? 0).toLocaleString() }} {{ $t('words translated') }}</span>
+                <span class="usage-stat-sep">&middot;</span>
+                <span class="usage-stat">{{ (license.usage?.translation_count ?? 0).toLocaleString() }} {{ $t('requests') }}</span>
+                <template v-if="license.settings?.analytics_enabled && (license.usage?.total_visits ?? 0) > 0">
+                  <span class="usage-stat-sep">&middot;</span>
+                  <span class="usage-stat">{{ (license.usage.total_visits).toLocaleString() }} {{ $t('visits') }}</span>
+                </template>
+                <template v-if="getLicenseLanguages(license).length > 0">
+                  <span class="usage-stat-sep">&middot;</span>
+                  <span class="usage-langs">
+                    <span
+                      v-for="lang in getLicenseLanguages(license)"
+                      :key="lang.code"
+                      class="usage-lang"
+                      :title="lang.name"
+                    >
+                      <span v-if="getLangFlag(lang.code)" class="lang-flag" v-html="getLangFlag(lang.code)"></span>
+                      <span v-else class="lang-code">{{ lang.code }}</span>
+                    </span>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-small btn-outline see-more-btn"
+            @click="router.push({ name: 'manage-license-analytics', params: { id: license.id } })"
+          >
+            {{ $t('See More') }}
+          </button>
+          </div>
+        <!-- Pre-cache progress bar in card footer -->
+        <PreCacheProgressBar
+          v-if="preCacheStore.isActive(license.id)"
+          :percentage="preCacheStore.getStatus(license.id)?.percentage || 0"
+          :pages-discovered="preCacheStore.getStatus(license.id)?.pages_discovered || 0"
+          :pages-translated="preCacheStore.getStatus(license.id)?.pages_translated || 0"
+          :status="preCacheStore.getStatus(license.id)?.status || 'running'"
+          compact
+          class="precache-card-bar"
+        />
+        </div>
+      </div>
+      <button
+        v-if="hasMoreLicenses"
+        class="show-more-btn"
+        @click="showAllLicenses = !showAllLicenses"
+      >
+        {{ showAllLicenses ? $t('Show Less') : $t('Show More') }} ({{ sortedLicenses.length - 2 }} {{ $t('more') }})
+      </button>
+    </div>
+
+    <!-- Pre-Cache Toast (bottom-left) -->
+    <PreCacheToast />
   </div>
 </template>
 
 <style scoped>
+/* Pre-cache bar in usage card */
+.precache-card-bar {
+  padding: 0 1.25rem 0.75rem 1.25rem;
+}
+
 /* Greeting Transition */
 .slide-down-enter-active,
 .slide-down-leave-active {
@@ -447,12 +560,15 @@ onUnmounted(() => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 1rem 0;
+  margin: 2rem 0 1rem 0 !important;
 }
 .license-usage-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+.license-usage-card {
+  padding: 0;
 }
 .license-usage-row {
   display: flex;
@@ -508,6 +624,11 @@ onUnmounted(() => {
   min-width: 0;
   text-align: left;
 }
+.usage-row-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .license-domain {
   font-size: 0.95rem;
   font-weight: 600;
@@ -517,11 +638,63 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   text-align: left;
 }
-.usage-words {
+.plan-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.plan-free {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  color: #667eea;
+}
+.plan-paid {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+.usage-row-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+.usage-stat {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-top: 2px;
-  text-align: left;
+}
+.usage-stat-sep {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+.usage-langs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.usage-lang {
+  display: inline-flex;
+  align-items: center;
+}
+.lang-flag {
+  display: inline-flex;
+  align-items: center;
+  width: 18px;
+  height: 13px;
+}
+.lang-flag :deep(svg) {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+}
+.lang-code {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
 .see-more-btn {

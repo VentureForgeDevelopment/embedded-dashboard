@@ -457,11 +457,11 @@
                 <span v-else> {{ $t('Loading...') }} </span>
               </button>
             </div>
-            <span v-if="!initial_onboard_setup && !isEmbedded" class="script-assurance-msg">
-              {{ $t("Install the translator and go live when you're ready.") }}
+            <span v-if="isEmbedded" class="script-assurance-msg">
+              {{ $t('Your translator will be automatically installed.') }}
             </span>
             <span v-else class="script-assurance-msg">
-              {{ $t('Your translator will be automatically installed.') }}
+              {{ $t("Install the translator and go live when you're ready.") }}
             </span>
           </div>
         </div>

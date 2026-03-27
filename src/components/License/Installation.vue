@@ -30,7 +30,7 @@
         :class="[
           'mode-button',
           { active: mode === 'dns' },
-          { 'btn-disabled': is_free },
+          { 'btn-disabled': is_dns_restricted },
         ]"
       >
         DNS
@@ -44,7 +44,7 @@
             >*</span
           >
         </span>
-        <span v-if="is_free" class="premium-badge">{{ $t('Premium') }}</span>
+        <span v-if="is_dns_restricted" class="premium-badge">{{ $t('Growth') }}</span>
       </button>
     </div>
     <div class="card-content">
@@ -96,10 +96,11 @@
       <!-- DNS Setup -->
       <div v-if="mode === 'dns'" class="dns-setup">
         <div class="dns-setup-box">
+          <!-- Card header — always visible across all steps -->
           <div class="card-header">
             <div class="script-embed-header">
               <h4 class="card-title">{{ $t('Manual DNS') }}</h4>
-              <p class="installation-description">
+              <p v-if="dnsStep === 3" class="installation-description">
                 {{ $t('Add these DNS records manually in your domain provider') }}
               </p>
             </div>
@@ -112,247 +113,313 @@
               }}</span>
             </div>
           </div>
-          <ol class="dns-steps">
-            <li class="dns-step">
-              <span class="step-number">1</span>
-              <span>{{ $t("Log in to your domain provider's DNS management panel") }}</span>
-            </li>
-            <li class="dns-step">
-              <span class="step-number">2</span>
-              <span
-                >{{ $t('Note your current @ record\'s value (it\'s usually a Type A or CNAME). Create a new record with the name "wl-origin", using the same type and value as your original @ record.') }}</span
-              >
-            </li>
-            <li class="dns-step">
-              <span class="step-number">3</span>
-              <span
-                >{{ $t('Delete your original @ record and re-create it as a CNAME record pointing to') }} <strong>proxy.weblinguist.ai</strong>.</span
-              >
-            </li>
-            <li class="dns-step">
-              <span class="step-number">4</span>
-              <span
-                >{{ $t('Wait for DNS changes to propagate, then you should be able to visit your website and see the changes. Try visiting yoursite.com/fr/ or yoursite.com/es-MX/') }}</span
-              >
-            </li>
-          </ol>
 
-          <div class="toggle-group">
-            <label class="toggle-label" @click.stop>
-              <input
-                type="checkbox"
-                class="toggle-checkbox"
-                :checked="!showStartButton"
-                @change="toggleDnsConfiguration"
-                :disabled="isVerifying"
-              />
-              <span class="toggle-slider"></span>
-            </label>
-            <span class="toggle-text">{{
-              showStartButton
-                ? $t("Enable Manual DNS Setup")
-                : $t("Manual DNS Setup Enabled")
-            }}</span>
-          </div>
+          <!-- Stepped content with transition -->
+          <div class="dns-step-container">
+            <Transition :name="transitionName" mode="out-in">
 
-          <div
-            v-if="
-              dnsCheckData &&
-              dnsCheckData.status &&
-              dnsCheckData.status != 'undefined' &&
-              dnsCheckData.status !== 'not_started_configuring'
-            "
-            class="dns-check-results"
-          >
-            <div v-if="originHealthMessage" class="dns-check-item failed">
-              <span class="check-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  ></path>
-                </svg>
-              </span>
-              <p>{{ originHealthMessage }}</p>
-            </div>
-          </div>
+              <!-- Step 1: Introduction + Enable Toggle -->
+              <div v-if="dnsStep === 1" key="step1" class="dns-step-page">
+                <div class="dns-intro">
+                  <p class="dns-intro-notice">
+                    {{ $t('The DNS setup is an optional but advanced setup method. This method is required to enable fully qualified URLs.') }}
+                  </p>
+                </div>
+                <div class="toggle-group">
+                  <label class="toggle-label" @click.stop>
+                    <input
+                      type="checkbox"
+                      class="toggle-checkbox"
+                      :checked="isDnsEnabled"
+                      @change="toggleDnsConfiguration"
+                      :disabled="isVerifying"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-text">{{
+                    isDnsEnabled
+                      ? $t("Manual DNS Setup Enabled")
+                      : $t("Enable Manual DNS Setup")
+                  }}</span>
+                </div>
+                <div v-if="isDnsEnabled" class="dns-step-nav">
+                  <button class="btn btn-primary" @click="goToStep(2)">{{ $t('Continue') }} &rarr;</button>
+                </div>
+              </div>
 
-          <div
-            class="dns-table-container"
-            v-if="
-              dnsCheckData &&
-              dnsCheckData.status &&
-              dnsCheckData.status != 'undefined' &&
-              dnsCheckData.status !== 'not_started_configuring'
-            "
-          >
-            <table class="dns-table">
-              <thead>
-                <tr>
-                  <th>{{ $t('Type') }}</th>
-                  <th>{{ $t('Name') }}</th>
-                  <th>{{ $t('Value') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>A/CNAME</td>
-                  <td>
-                    <div class="dns-value-wrapper">
-                      <code class="dns-value">{{ dnsRecord1.name }}</code>
+              <!-- Step 2: Hosting Provider Selection -->
+              <div v-else-if="dnsStep === 2" key="step2" class="dns-step-page">
+                <div class="hosting-provider-section">
+                  <label class="hosting-provider-label">{{ $t('Select your hosting provider') }}</label>
+                  <select v-model="selectedProvider" class="hosting-provider-select full-width" @change="onProviderChange">
+                    <option value="standard">{{ $t('Standard (VPS / cPanel / Shared Hosting)') }}</option>
+                    <option value="wpengine">WP Engine</option>
+                    <option value="kinsta">Kinsta</option>
+                    <option value="flywheel">Flywheel</option>
+                    <option value="other_managed">{{ $t('Other Managed Host') }}</option>
+                  </select>
+                </div>
+
+                <!-- Managed Host Origin Input -->
+                <div v-if="isManagedHost" class="managed-host-section">
+                  <label class="hosting-provider-label">{{ managedHostLabel }}</label>
+                  <p v-if="selectedProvider === 'wpengine'" class="managed-host-help">
+                    {{ $t('In your WP Engine dashboard, go to Sites > your site > Domains. Look for the domain ending in .wpengine.com (e.g. "mysite.wpengine.com"). Enter the name portion below.') }}
+                  </p>
+                  <div class="managed-host-save-row">
+                    <div class="managed-host-input-row">
+                      <input
+                        v-model="managedHostInput"
+                        type="text"
+                        class="managed-host-input"
+                        :placeholder="managedHostPlaceholder"
+                      />
+                      <span v-if="managedHostSuffix" class="managed-host-suffix">{{ managedHostSuffix }}</span>
                     </div>
-                  </td>
-                  <td>
-                    <div class="dns-value-wrapper">
-                      <code class="dns-value">{{
-                        dnsCheckData?.checks?.main_domain?.actual[0]
-                      }}</code>
-                    </div>
-                  </td>
-                </tr>
-                <tr
-                  v-if="mainDomainCheck.status !== 'unknown'"
-                  class="dns-check-message-row"
-                  :class="mainDomainCheck.status"
+                    <button
+                      class="btn btn-primary btn-small managed-host-save-btn"
+                      @click="saveUpstreamOrigin"
+                      :disabled="isSavingUpstream || !managedHostInput.trim()"
+                    >
+                      {{ isSavingUpstream ? $t('Saving...') : $t('Save') }}
+                    </button>
+                  </div>
+                  <p v-if="currentUpstreamOrigin" class="managed-host-current">
+                    {{ $t('Current upstream origin') }}: <code>{{ currentUpstreamOrigin }}</code>
+                  </p>
+                </div>
+
+                <div class="dns-step-nav">
+                  <button class="btn btn-primary" @click="goToStep(1)">&larr; {{ $t('Back') }}</button>
+                  <button
+                    class="btn btn-primary"
+                    @click="onStep2Continue"
+                    :disabled="isManagedHost && !currentUpstreamOrigin"
+                  >
+                    {{ $t('Continue') }} &rarr;
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 3: DNS Records & Verification -->
+              <div v-else-if="dnsStep === 3" key="step3" class="dns-step-page">
+                <!-- DNS Steps - adapted based on hosting provider -->
+                <ol class="dns-steps">
+                  <li class="dns-step">
+                    <span class="step-number">1</span>
+                    <span>{{ $t("Log in to your domain provider's DNS management panel") }}</span>
+                  </li>
+                  <template v-if="!isManagedHost">
+                    <li class="dns-step">
+                      <span class="step-number">2</span>
+                      <span>{{ $t('Note your current @ record\'s value (it\'s usually a Type A or CNAME). Create a new record with the name "wl-origin", using the same type and value as your original @ record.') }}</span>
+                    </li>
+                    <li class="dns-step">
+                      <span class="step-number">3</span>
+                      <span>{{ $t('Delete your original @ record and re-create it as a CNAME record pointing to') }} <strong>proxy.weblinguist.ai</strong>.</span>
+                    </li>
+                    <li class="dns-step">
+                      <span class="step-number">4</span>
+                      <span>{{ $t('Wait for DNS changes to propagate, then you should be able to visit your website and see the changes. Try visiting yoursite.com/fr/ or yoursite.com/es-MX/') }}</span>
+                    </li>
+                  </template>
+                  <template v-else>
+                    <li class="dns-step">
+                      <span class="step-number">2</span>
+                      <span>{{ $t('Delete your original @ record and re-create it as a CNAME record pointing to') }} <strong>proxy.weblinguist.ai</strong>.</span>
+                    </li>
+                    <li class="dns-step">
+                      <span class="step-number">3</span>
+                      <span>{{ $t('Wait for DNS changes to propagate, then you should be able to visit your website and see the changes. Try visiting yoursite.com/fr/ or yoursite.com/es-MX/') }}</span>
+                    </li>
+                  </template>
+                </ol>
+
+                <!-- Origin health warning -->
+                <div
+                  v-if="hasDnsCheckData && originHealthMessage"
+                  class="dns-check-results"
                 >
-                  <td colspan="3">
-                    <div class="dns-check-item" :class="mainDomainCheck.status">
-                      <span class="check-icon">
-                        <svg
-                          v-if="mainDomainCheck.status === 'correct'"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                        <svg
-                          v-else
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          ></path>
-                        </svg>
-                      </span>
-                      <p>{{ mainDomainCheck.message }}</p>
-                    </div>
-                  </td>
-                </tr>
+                  <div class="dns-check-item failed">
+                    <span class="check-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        ></path>
+                      </svg>
+                    </span>
+                    <p>{{ originHealthMessage }}</p>
+                  </div>
+                </div>
 
-                <tr>
-                  <td>{{ $t('CNAME') }}</td>
-                  <td>
-                    <div class="dns-value-wrapper">
-                      <code class="dns-value">{{ dnsRecord2.name }}</code>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="dns-value-wrapper">
-                      <code class="dns-value"
-                        >{ original A or CNAME value}</code
+                <!-- DNS records table -->
+                <div class="dns-table-container">
+                  <div class="dns-table-header">
+                    <span class="dns-table-title">{{ $t('DNS Records') }}</span>
+                    <button
+                      class="btn btn-small dns-recheck-btn"
+                      @click="verifyDns"
+                      :disabled="isVerifying"
+                    >
+                      <svg
+                        v-if="isVerifying"
+                        class="spinner"
+                        viewBox="0 0 50 50"
+                        style="width: 0.875rem; height: 0.875rem; margin-right: 0.35rem"
                       >
-                    </div>
-                  </td>
-                </tr>
-                <tr
-                  v-if="mainDomainCheck.status !== 'unknown'"
-                  class="dns-check-message-row"
-                  :class="mainDomainCheck.status"
-                >
-                  <td colspan="3">
-                    <div class="dns-check-item" :class="originCheck.status">
-                      <span class="check-icon">
-                        <svg
-                          v-if="originCheck.status === 'correct'"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                      </svg>
+                      {{ isVerifying ? $t('Checking...') : $t('Re-check') }}
+                    </button>
+                  </div>
+                  <table class="dns-table">
+                    <thead>
+                      <tr>
+                        <th>{{ $t('Type') }}</th>
+                        <th>{{ $t('Name') }}</th>
+                        <th>{{ $t('Value') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Main domain (@) record -->
+                      <tr>
+                        <td>A/CNAME</td>
+                        <td>
+                          <div class="dns-value-wrapper">
+                            <code class="dns-value">{{ dnsRecord1.name }}</code>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="dns-value-wrapper">
+                            <code class="dns-value">{{
+                              dnsCheckData?.checks?.main_domain?.actual?.[0] || 'proxy.weblinguist.ai'
+                            }}</code>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr
+                        v-if="mainDomainCheck.status !== 'unknown'"
+                        class="dns-check-message-row"
+                        :class="mainDomainCheck.status"
+                      >
+                        <td colspan="3">
+                          <div class="dns-check-item" :class="mainDomainCheck.status">
+                            <span class="check-icon">
+                              <svg
+                                v-if="mainDomainCheck.status === 'correct'"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M5 13l4 4L19 7"
+                                ></path>
+                              </svg>
+                              <svg
+                                v-else
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"
+                                ></path>
+                              </svg>
+                            </span>
+                            <p v-html="mainDomainCheck.message"></p>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- wl-origin / upstream record (only for VPS) -->
+                      <template v-if="!isManagedHost">
+                        <tr>
+                          <td>{{ $t('CNAME') }}</td>
+                          <td>
+                            <div class="dns-value-wrapper">
+                              <code class="dns-value">{{ dnsRecord2.name }}</code>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="dns-value-wrapper">
+                              <code class="dns-value"
+                                >{ original A or CNAME value}</code
+                              >
+                            </div>
+                          </td>
+                        </tr>
+                        <tr
+                          v-if="mainDomainCheck.status !== 'unknown'"
+                          class="dns-check-message-row"
+                          :class="originCheck.status"
                         >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                        <svg
-                          v-else
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          ></path>
-                        </svg>
-                      </span>
-                      <p>{{ originCheck.message }}</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                          <td colspan="3">
+                            <div class="dns-check-item" :class="originCheck.status">
+                              <span class="check-icon">
+                                <svg
+                                  v-if="originCheck.status === 'correct'"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                  ></path>
+                                </svg>
+                                <svg
+                                  v-else
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  ></path>
+                                </svg>
+                              </span>
+                              <p>{{ originCheck.message }}</p>
+                            </div>
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="dns-step-nav">
+                  <button class="btn btn-primary" @click="goToStep(2)">&larr; {{ $t('Back') }}</button>
+                </div>
+              </div>
+
+            </Transition>
           </div>
 
-          <div class="dns-actions">
-            <button
-              v-if="!showStartButton"
-              class="btn btn-primary"
-              @click="verifyDns"
-              :disabled="isVerifying"
-            >
-              <svg
-                v-if="isVerifying"
-                class="spinner"
-                viewBox="0 0 50 50"
-                style="width: 1rem; height: 1rem; margin-right: 0.5rem"
-              >
-                <circle
-                  class="path"
-                  cx="25"
-                  cy="25"
-                  r="20"
-                  fill="none"
-                  stroke-width="5"
-                ></circle>
-              </svg>
-              {{ isVerifying ? $t("Verifying...") : $t("Verify DNS Records") }}
-            </button>
+          <!-- Step indicator — bottom right -->
+          <div class="dns-step-indicator">
+            <span class="step-label">{{ $t('Step') }} {{ dnsStep }} {{ $t('of') }} 3</span>
+            <span
+              v-for="s in 3"
+              :key="s"
+              :class="['step-dot', { active: s === dnsStep, completed: s < dnsStep }]"
+              @click="s < dnsStep ? goToStep(s) : null"
+            ></span>
           </div>
         </div>
-
-        <!-- dns provider integration -->
-        <!-- <div class="dns-setup-box">
-          <div class="card-header">
-            <div class="script-embed-header">
-              <h4 class="card-title">Cloudflare Integration</h4>
-              <p class="installation-description">
-                Automatically configure DNS via Cloudflare Api
-              </p>
-            </div>
-            <div class="manual-status">
-              <span class="status-indicator" :class="verificationStatusClass">{{
-                verificationStatusText
-              }}</span>
-            </div>
-          </div>
-        </div> -->
       </div>
     </div>
   </div>
@@ -360,7 +427,6 @@
 
 <script setup>
 import { ref, watch, computed, onMounted } from "vue"
-// import { storeToRefs } from "pinia"
 import { useLicenseStore } from "../../stores/license"
 import { useThemeStore } from "../../stores/theme"
 import SlideInNotification from "../SlideInNotification.vue"
@@ -370,9 +436,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  is_free: {
+  is_dns_restricted: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 })
 
@@ -387,6 +453,92 @@ const successMessage = ref("")
 const failMessage = ref("")
 const showSuccessNotification = ref(false)
 const showFailNotification = ref(false)
+
+// Hosting provider state
+const selectedProvider = ref("standard")
+const managedHostInput = ref("")
+const isSavingUpstream = ref(false)
+
+// Stepped flow state
+const dnsStep = ref(1)
+const transitionDirection = ref("forward")
+
+const transitionName = computed(() =>
+  transitionDirection.value === "forward" ? "slide-left" : "slide-right"
+)
+
+const goToStep = (step) => {
+  transitionDirection.value = step > dnsStep.value ? "forward" : "backward"
+  dnsStep.value = step
+}
+
+const currentUpstreamOrigin = computed(() => props.license?.upstream_origin || null)
+
+const isManagedHost = computed(() => selectedProvider.value !== "standard")
+
+const managedHostLabel = computed(() => {
+  const labels = {
+    wpengine: "WP Engine Install Name",
+    kinsta: "Kinsta Site Name",
+    flywheel: "Flywheel Site Name",
+    other_managed: "Backend Hostname",
+  }
+  return labels[selectedProvider.value] || "Backend Hostname"
+})
+
+const managedHostPlaceholder = computed(() => {
+  const placeholders = {
+    wpengine: "mysite",
+    kinsta: "mysite",
+    flywheel: "mysite",
+    other_managed: "mysite.hostingprovider.com",
+  }
+  return placeholders[selectedProvider.value] || "mysite.example.com"
+})
+
+const managedHostSuffix = computed(() => {
+  const suffixes = {
+    wpengine: ".wpengine.com",
+    kinsta: ".kinsta.cloud",
+    flywheel: ".flywheelsites.com",
+    other_managed: null,
+  }
+  return suffixes[selectedProvider.value] || null
+})
+
+const onProviderChange = () => {
+  managedHostInput.value = ""
+}
+
+const saveUpstreamOrigin = async () => {
+  if (!props.license?.id || !managedHostInput.value.trim()) return
+
+  isSavingUpstream.value = true
+  try {
+    let upstreamOrigin = managedHostInput.value.trim().toLowerCase()
+    if (managedHostSuffix.value) {
+      upstreamOrigin = upstreamOrigin + managedHostSuffix.value
+    }
+
+    await licenseStore.updateLicenseSettings({
+      license_id: props.license.id,
+      settings: props.license.settings || {},
+      upstream_origin: upstreamOrigin,
+    })
+
+    successMessage.value = `Upstream origin set to ${upstreamOrigin}`
+    showSuccessNotification.value = true
+    setTimeout(() => (showSuccessNotification.value = false), 3000)
+  } catch (error) {
+    console.error("Failed to save upstream origin:", error)
+    failMessage.value =
+      error.response?.data?.error || "Failed to save upstream origin."
+    showFailNotification.value = true
+    setTimeout(() => (showFailNotification.value = false), 3000)
+  } finally {
+    isSavingUpstream.value = false
+  }
+}
 
 const isEmbedded = computed(() => themeStore.isEmbedded)
 const isShopifyPlatform = computed(() => window.WebLinguistDashboard?.platform === 'shopify')
@@ -404,7 +556,17 @@ const verificationStatusClass = computed(() => {
   return "unverified"
 })
 
-const isDnsEnabled = computed(() => !showStartButton.value)
+const isDnsEnabled = computed(() => {
+  // Use the persisted dns_enabled boolean, fall back to status-based check
+  if (dnsCheckData.value?.dns_enabled !== undefined) {
+    return !!dnsCheckData.value.dns_enabled
+  }
+  // Also check the license prop directly for initial load before store is populated
+  if (props.license?.dns_check?.dns_enabled !== undefined) {
+    return !!props.license.dns_check.dns_enabled
+  }
+  return !showStartButton.value
+})
 
 const isDnsEnabledAndUnverified = computed(
   () => isDnsEnabled.value && licenseStore.verificationStatus !== "verified"
@@ -412,19 +574,26 @@ const isDnsEnabledAndUnverified = computed(
 
 const dnsCheckData = computed(() => licenseStore.state.dnsCheckData)
 
+const hasDnsCheckData = computed(() =>
+  dnsCheckData.value &&
+  dnsCheckData.value.status &&
+  dnsCheckData.value.status != "undefined" &&
+  dnsCheckData.value.status !== "not_started_configuring"
+)
+
 const mainDomainCheck = computed(() => {
   const check = dnsCheckData.value?.checks?.main_domain
   if (!check)
     return { status: "unknown", message: "A record status is unavailable." }
 
   const isCorrect = check.actual?.includes(check.expected)
+  const expectedDisplay = isManagedHost.value ? "proxy.weblinguist.ai" : check.expected
+  const actual = check.actual?.join(", ") || "nothing"
   return {
     status: isCorrect ? "correct" : "failed",
     message: isCorrect
       ? `A record for ${check.name} is pointing correctly.`
-      : `A record for ${check.name} is incorrect. Expected ${
-          check.expected
-        } but found ${check.actual?.join(", ") || "nothing"}.`,
+      : `A record for ${check.name} is incorrect. <strong>Expected ${expectedDisplay} but found ${actual}.</strong>`,
   }
 })
 
@@ -433,15 +602,21 @@ const originCheck = computed(() => {
   if (!check)
     return {
       status: "unknown",
-      message: "wl-origin record status is unavailable.",
+      message: currentUpstreamOrigin.value
+        ? "Upstream origin status is unavailable."
+        : "wl-origin record status is unavailable.",
     }
 
   return {
     status: check.status === "correct" ? "correct" : "failed",
     message:
       check.status === "correct"
-        ? `wl-origin record for ${check.name} is correct.`
-        : `wl-origin record for ${check.name} is not configured correctly.`,
+        ? currentUpstreamOrigin.value
+          ? `Upstream origin ${check.name} is configured correctly.`
+          : `wl-origin record for ${check.name} is correct.`
+        : currentUpstreamOrigin.value
+          ? `Upstream origin ${check.name} is not configured correctly.`
+          : `wl-origin record for ${check.name} is not configured correctly.`,
   }
 })
 
@@ -454,7 +629,7 @@ const dnsRecord1 = computed(() => ({
 }))
 
 const dnsRecord2 = computed(() => ({
-  name: "wl-origin",
+  name: currentUpstreamOrigin.value || "wl-origin",
 }))
 
 const showStartButton = computed(() => {
@@ -464,6 +639,35 @@ const showStartButton = computed(() => {
     dnsCheckData.value.status == "undefined" ||
     dnsCheckData.value.status === "not_started_configuring"
   )
+})
+
+// Determine initial step based on persisted state
+const initialDnsStep = computed(() => {
+  if (!isDnsEnabled.value) return 1
+
+  // DNS enabled — check if hosting provider is set
+  const storedProvider = dnsCheckData.value?.hosting_provider
+  if (storedProvider || currentUpstreamOrigin.value) return 3
+
+  // Enabled but no provider chosen yet
+  return 2
+})
+
+// Sync step from persisted state (only on data load, not user navigation)
+const hasInitialized = ref(false)
+watch(initialDnsStep, (newStep) => {
+  if (!hasInitialized.value) {
+    dnsStep.value = newStep
+    hasInitialized.value = true
+  }
+}, { immediate: true })
+
+// Also re-initialize when dnsCheckData loads after mount
+watch(dnsCheckData, () => {
+  if (!hasInitialized.value || dnsStep.value === 1) {
+    dnsStep.value = initialDnsStep.value
+    hasInitialized.value = true
+  }
 })
 
 watch(
@@ -483,7 +687,6 @@ const copyToClipboard = async (text) => {
     await navigator.clipboard.writeText(text)
   } catch (err) {
     console.error("Failed to copy:", err)
-    // Fallback for older browsers
     const textArea = document.createElement("textarea")
     textArea.value = text
     document.body.appendChild(textArea)
@@ -508,16 +711,31 @@ const isVerifying = computed(
     licenseStore.verificationStatus === "verifying"
 )
 
+const syncDnsEnabledToWordPress = (enabled) => {
+  if (isEmbedded.value && props.license) {
+    licenseStore.saveLicenseToWordPress({
+      license_id: props.license.id,
+      license_key: props.license.license_key,
+      subscription_id: props.license.subscription_id,
+      dns_enabled: enabled,
+    }).catch((err) => {
+      console.error("Failed to sync dns_enabled to WordPress:", err)
+    })
+  }
+}
+
 const toggleDnsConfiguration = async () => {
   try {
     if (props.license?.id) {
-      if (showStartButton.value) {
+      if (!isDnsEnabled.value) {
         await licenseStore.startDnsConfiguration({
           license_id: props.license.id,
         })
         successMessage.value = "Manual DNS setup enabled."
         showSuccessNotification.value = true
         setTimeout(() => (showSuccessNotification.value = false), 3000)
+        syncDnsEnabledToWordPress(true)
+        goToStep(2)
       } else {
         await licenseStore.stopDnsConfiguration({
           license_id: props.license.id,
@@ -525,6 +743,8 @@ const toggleDnsConfiguration = async () => {
         successMessage.value = "Manual DNS setup disabled."
         showSuccessNotification.value = true
         setTimeout(() => (showSuccessNotification.value = false), 3000)
+        syncDnsEnabledToWordPress(false)
+        goToStep(1)
       }
     }
   } catch (error) {
@@ -539,10 +759,29 @@ const toggleDnsConfiguration = async () => {
   }
 }
 
+const onStep2Continue = async () => {
+  if (props.license?.id) {
+    // Persist provider choice
+    await licenseStore.startDnsConfiguration({
+      license_id: props.license.id,
+      hosting_provider: selectedProvider.value,
+    })
+  }
+  goToStep(3)
+  // Trigger DNS checks when landing on step 3
+  if (props.license?.id) {
+    licenseStore.performDnsChecks(props.license.id, {
+      skipOriginDetection: isManagedHost.value,
+    })
+  }
+}
+
 const verifyDns = async () => {
   try {
     if (props.license?.id) {
-      await licenseStore.performDnsChecks(props.license.id)
+      await licenseStore.performDnsChecks(props.license.id, {
+        skipOriginDetection: isManagedHost.value,
+      })
       successMessage.value = "DNS records have been re-verified."
       showSuccessNotification.value = true
       setTimeout(() => {
@@ -560,25 +799,70 @@ const verifyDns = async () => {
   }
 }
 
+// Initialize provider selector when license data becomes available
+const initProviderFromUpstreamOrigin = (origin) => {
+  if (!origin) {
+    // Check if there's a stored provider choice in dnsCheckData
+    const storedProvider = dnsCheckData.value?.hosting_provider
+    if (storedProvider) {
+      selectedProvider.value = storedProvider
+    } else {
+      selectedProvider.value = 'standard'
+    }
+    managedHostInput.value = ''
+    return
+  }
+  if (origin.endsWith('.wpengine.com')) {
+    selectedProvider.value = 'wpengine'
+    managedHostInput.value = origin.replace('.wpengine.com', '')
+  } else if (origin.endsWith('.kinsta.cloud')) {
+    selectedProvider.value = 'kinsta'
+    managedHostInput.value = origin.replace('.kinsta.cloud', '')
+  } else if (origin.endsWith('.flywheelsites.com')) {
+    selectedProvider.value = 'flywheel'
+    managedHostInput.value = origin.replace('.flywheelsites.com', '')
+  } else {
+    selectedProvider.value = 'other_managed'
+    managedHostInput.value = origin
+  }
+}
+
+watch(
+  () => props.license?.upstream_origin,
+  (newOrigin) => {
+    initProviderFromUpstreamOrigin(newOrigin)
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
+  // Seed store's dnsCheckData from the license prop so state is available immediately
+  if (props.license?.dns_check) {
+    licenseStore.state.dnsCheckData = {
+      ...licenseStore.state.dnsCheckData,
+      ...props.license.dns_check,
+    }
+  }
+
+  // Default to DNS tab if DNS is enabled
+  if (props.license?.dns_check?.dns_enabled) {
+    mode.value = 'dns'
+  }
+
   if (
     props.license?.id &&
     props.license?.dns_check?.status &&
     props.license?.dns_check?.status != "undefined" &&
     props.license?.dns_check?.status !== "not_started_configuring"
   ) {
-    licenseStore.performDnsChecks(props.license.id)
+    licenseStore.performDnsChecks(props.license.id, {
+      skipOriginDetection: !!props.license.upstream_origin,
+    })
   }
 })
 </script>
 
 <style scoped>
-.dns-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.5rem;
-}
 
 .toggle-group {
   display: flex;
@@ -746,6 +1030,25 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.dns-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dns-table-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dns-recheck-btn {
+  font-size: 0.8rem;
+}
+
 .dns-table {
   width: 100%;
   border-collapse: collapse;
@@ -848,10 +1151,133 @@ onMounted(() => {
   margin: 0;
   max-height: 250px;
 }
+.hosting-provider-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+}
+
+.hosting-provider-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.hosting-provider-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.hosting-provider-select.full-width {
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+}
+
+.managed-host-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.managed-host-help {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+}
+
+.managed-host-save-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.managed-host-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.managed-host-save-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .managed-host-save-row {
+    flex-direction: column;
+  }
+
+  .managed-host-input-row {
+    width: 100%;
+  }
+
+  .managed-host-save-btn {
+    width: 100%;
+  }
+}
+
+.managed-host-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px 0 0 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+.managed-host-input-row .managed-host-input:only-child {
+  border-radius: 8px;
+}
+
+.managed-host-suffix {
+  padding: 0.5rem 0.75rem;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  font-family: monospace;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.managed-host-current {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.managed-host-current code {
+  background: var(--bg-primary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
 .dns-steps {
   list-style: none;
   padding: 0;
-  margin: 1.5rem 0;
+  margin: 0 0 1.5rem 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -942,7 +1368,7 @@ onMounted(() => {
     250,
     251,
     0.95
-  ); /* A light background with backdrop blur */
+  );
   backdrop-filter: blur(4px);
   z-index: 10;
   display: flex;
@@ -950,7 +1376,7 @@ onMounted(() => {
   justify-content: center;
   padding: 1.5rem;
   text-align: center;
-  border-radius: 12px; /* Match card border-radius */
+  border-radius: 12px;
 }
 
 .overlay-content {
@@ -960,7 +1386,7 @@ onMounted(() => {
 .overlay-icon {
   width: 48px;
   height: 48px;
-  color: #22c55e; /* Success green */
+  color: #22c55e;
   margin-bottom: 1rem;
 }
 
@@ -977,4 +1403,106 @@ onMounted(() => {
   line-height: 1.5;
   margin: 0;
 }
+
+/* Step indicator — bottom right */
+.dns-step-indicator {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0;
+}
+
+.step-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-right: 0.25rem;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--accent-color, #f205cb);
+  transform: scale(1.3);
+}
+
+.step-dot.completed {
+  background: #22c55e;
+  cursor: pointer;
+}
+
+/* Step container and pages */
+.dns-step-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.dns-step-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Slide-left transition (forward: enter from right) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.slide-left-enter-from {
+  transform: translateX(30%);
+  opacity: 0;
+}
+.slide-left-leave-to {
+  transform: translateX(-30%);
+  opacity: 0;
+}
+
+/* Slide-right transition (backward: enter from left) */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.slide-right-enter-from {
+  transform: translateX(-30%);
+  opacity: 0;
+}
+.slide-right-leave-to {
+  transform: translateX(30%);
+  opacity: 0;
+}
+
+/* Step navigation */
+.dns-step-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+
+/* DNS intro section (Step 1) */
+.dns-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.dns-intro-notice {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 </style>

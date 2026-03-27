@@ -92,6 +92,15 @@
         </div>
       </div>
 
+      <!-- Pre-Cache Progress Bar -->
+      <PreCacheProgressBar
+        v-if="(hasActivePreCache || hasJustCompleted) && preCacheStatus"
+        :percentage="preCacheStatus.percentage"
+        :pages-discovered="preCacheStatus.pages_discovered"
+        :pages-translated="preCacheStatus.pages_translated"
+        :status="preCacheStatus.status"
+      />
+
       <!-- Main Tabs -->
       <div class="main-tabs-nav">
         <button
@@ -140,8 +149,26 @@
 
       <!-- General Tab Content -->
       <div v-if="activeTab === 'general'" class="main-tab-pane">
-        <!-- Free Tier Upgrade Banner -->
-        <div v-if="isFree" class="free-tier-banner">
+        <!-- Free Tier Approaching Limit Banner -->
+        <div v-if="isFree && isApproachingLimit" class="free-tier-banner approaching-limit">
+          <div class="banner-content">
+            <div class="banner-icon warning-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div class="banner-text">
+              <h4>{{ $t("You're approaching your translation limit") }}</h4>
+              <p>{{ $t("You've used {used} of {limit} words this month ({percent}%). Upgrade for unlimited translations.", { used: usageData.words_translated.toLocaleString(), limit: usageData.monthly_word_limit.toLocaleString(), percent: usageData.usage_percentage }) }}</p>
+            </div>
+            <button @click="goToCheckoutUpgrade(license.id)" class="btn btn-primary banner-btn">{{ $t('Upgrade Now') }}</button>
+          </div>
+        </div>
+
+        <!-- Free Tier Upgrade Banner (normal state) -->
+        <div v-else-if="isFree" class="free-tier-banner">
           <div class="banner-content">
             <div class="banner-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -208,9 +235,9 @@
             </div>
 
             <!-- Installation Card Component -->
-            <Installation 
+            <Installation
               :license="license"
-              :is_free="isFree"
+              :is_dns_restricted="isDnsRestricted"
             />
 
             <!-- Languages Card -->
@@ -395,7 +422,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue"
+import { ref, onMounted, onUnmounted, computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useAuthStore } from "../stores/auth"
 import { useThemeStore } from "../stores/theme"
@@ -412,12 +439,15 @@ import Localization from "../components/License/Localization.vue"
 import Installation from "../components/License/Installation.vue"
 import UpgradePrompt from "../components/UpgradePrompt.vue"
 import ScheduledChangeAlert from "../components/ScheduledChangeAlert.vue"
+import PreCacheProgressBar from "../components/PreCacheProgressBar.vue"
+import { usePreCacheStore } from "../stores/precache"
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const licenseStore = useLicenseStore()
 const themeStore = useThemeStore()
+const preCacheStore = usePreCacheStore()
 
 const license = ref(null)
 const loading = ref(false)
@@ -435,6 +465,11 @@ const showFailNotification = ref(false)
 
 const isEmbedded = computed(() => themeStore.isEmbedded)
 
+// Pre-cache progress
+const preCacheStatus = computed(() => preCacheStore.getStatus(licenseId.value))
+const hasActivePreCache = computed(() => preCacheStore.isActive(licenseId.value))
+const hasJustCompleted = computed(() => preCacheStore.justCompleted(licenseId.value))
+
 const isSaving = computed(() => licenseStore.state.loading.licenses)
 
 // Get license ID from route params
@@ -443,8 +478,26 @@ const licenseId = computed(() => route.params.id)
 // Check if license is free tier
 const isFree = computed(() => license.value?.type === 'free')
 
+// Check if license lacks DNS access (requires Growth plan or higher)
+const isDnsRestricted = computed(() => {
+  const l = license.value
+  if (!l) return true
+  if (l.type === 'manual') return false
+  if (l.type === 'free') return true
+  // Subscription licenses: check plan tier
+  if (l.product) {
+    const plan = l.product.toLowerCase()
+    return !plan.includes('growth') && !plan.includes('pro')
+  }
+  return true
+})
+
 // Get scheduled change info if any
 const scheduledChange = computed(() => license.value?.scheduled_change || null)
+
+// Usage data for free tier approaching-limit banner
+const usageData = computed(() => license.value?.usage ?? null)
+const isApproachingLimit = computed(() => usageData.value?.usage_percentage >= 80)
 
 // Handler for when scheduled change is cancelled
 function handleScheduledChangeCancelled() {
@@ -591,10 +644,12 @@ const transformLicense = (raw) => {
     lastSync: formatDate(raw.updated_at),
     license_key: raw.license_key,
     settings: settings,
+    upstream_origin: raw.upstream_origin || null,
     dns_check: raw.dns_check,
     createdAt: raw.created_at,
     scheduled_change: raw.scheduled_change || null,
     subscription_id: raw.subscription_id || null,
+    usage: raw.usage || null,
   }
 }
 
@@ -618,6 +673,10 @@ const fetchLicense = async () => {
       licenseStore.state.dnsCheckData = result.license?.dns_check
 
       license.value = transformLicense(result.license)
+
+      // Start polling pre-cache status for this license
+      preCacheStore.startPolling(licenseId.value)
+
       return response
     } else {
       throw new Error(result.error || "Failed to get license")
@@ -843,6 +902,12 @@ const handleSettingSaved = (updatedLicense) => {
   license.value = transformLicense(updatedLicense)
 }
 
+onUnmounted(() => {
+  if (licenseId.value) {
+    preCacheStore.stopPolling(licenseId.value)
+  }
+})
+
 // Load license data on mount
 onMounted(() => {
   // Initialize tabs from URL
@@ -1020,6 +1085,17 @@ onMounted(() => {
 
 .banner-btn:hover {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Approaching Limit Banner Variant */
+.free-tier-banner.approaching-limit {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(234, 88, 12, 0.08));
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.warning-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
 }
 
 @media (max-width: 768px) {

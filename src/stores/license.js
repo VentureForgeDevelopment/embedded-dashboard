@@ -139,6 +139,7 @@ export const useLicenseStore = defineStore("license", () => {
                   license_id: activeLicense.id,
                   license_key: activeLicense.license_key,
                   subscription_id: activeLicense.subscription_id,
+                  dns_enabled: !!(activeLicense.dns_check?.dns_enabled),
                 }).catch((err) => {
                   console.error(
                     "Failed to auto-save/update license in WordPress:",
@@ -169,6 +170,7 @@ export const useLicenseStore = defineStore("license", () => {
                   license_id: licenseByDomain.id,
                   license_key: licenseByDomain.license_key,
                   subscription_id: licenseByDomain.subscription_id,
+                  dns_enabled: !!(licenseByDomain.dns_check?.dns_enabled),
                 }).catch((err) => {
                   console.error(
                     "Failed to auto-save/update license in WordPress:",
@@ -437,6 +439,9 @@ export const useLicenseStore = defineStore("license", () => {
       if (payload.poly_enabled !== undefined) {
         requestBody.poly_enabled = payload.poly_enabled
       }
+      if (payload.upstream_origin !== undefined) {
+        requestBody.upstream_origin = payload.upstream_origin
+      }
 
       api
         .put(`${appApiUrl.value}licenses/${payload.license_id}`, requestBody, {
@@ -446,6 +451,14 @@ export const useLicenseStore = defineStore("license", () => {
         })
         .then((res) => {
           setLoading("licenses", false)
+          // Update the license in local state so changes persist across tab navigation
+          if (res.data?.data && Array.isArray(state.value.licenses)) {
+            const updated = res.data.data
+            const idx = state.value.licenses.findIndex(l => l.id === updated.id)
+            if (idx !== -1) {
+              state.value.licenses[idx] = updated
+            }
+          }
           resolve(res)
         })
         .catch((err) => {
@@ -818,6 +831,7 @@ export const useLicenseStore = defineStore("license", () => {
                 : "false"
             },
             licenseType: '${license.type || "subscription"}',
+            dnsEnabled: ${!!(license.dns_check?.dns_enabled)},
             analyticsEnabled: ${settings.analytics_enabled === true ? "true" : "false"},
             apiUrl: '${config.appApiUrl.replace(
               /\/$/,
@@ -850,17 +864,24 @@ export const useLicenseStore = defineStore("license", () => {
 
   function startDnsConfiguration(payload) {
     setLoading("dns", true)
+    const body = {}
+    if (payload.hosting_provider) {
+      body.hosting_provider = payload.hosting_provider
+    }
     return api
       .post(
         `${appApiUrl.value}licenses/${payload.license_id}/dns-check/start-configuration`,
-        {},
+        body,
         {
           headers: { "X-Account-ID": authStore.currentAccountId.toString() },
         }
       )
       .then((response) => {
         if (response.data?.data) {
-          state.value.dnsCheckData.status = response.data?.data?.status
+          state.value.dnsCheckData = {
+            ...state.value.dnsCheckData,
+            ...response.data.data,
+          }
         }
         setLoading("dns", false)
         return response
@@ -883,7 +904,10 @@ export const useLicenseStore = defineStore("license", () => {
       )
       .then((response) => {
         if (response.data?.data) {
-          state.value.dnsCheckData.status = response.data?.data?.status
+          state.value.dnsCheckData = {
+            ...state.value.dnsCheckData,
+            ...response.data.data,
+          }
         }
         setLoading("dns", false)
         return response
@@ -910,7 +934,10 @@ export const useLicenseStore = defineStore("license", () => {
         )
         .then((response) => {
           if (response.data?.data) {
-            state.value.dnsCheckData = response.data.data
+            state.value.dnsCheckData = {
+              ...state.value.dnsCheckData,
+              ...response.data.data,
+            }
             if (response.data.status === "verified") {
               state.value.verificationStatus = "verified"
             } else {
@@ -1012,14 +1039,17 @@ export const useLicenseStore = defineStore("license", () => {
     })
   }
 
-  async function performDnsChecks(licenseId) {
+  async function performDnsChecks(licenseId, { skipOriginDetection = false } = {}) {
     setLoading("dns", true)
     try {
-      await Promise.all([
+      const checks = [
         checkLicenseDns({ license_id: licenseId }),
-        detectLicenseOrigin({ license_id: licenseId }),
         checkLicenseOriginHealth({ license_id: licenseId }),
-      ])
+      ]
+      if (!skipOriginDetection) {
+        checks.push(detectLicenseOrigin({ license_id: licenseId }))
+      }
+      await Promise.all(checks)
     } finally {
       setLoading("dns", false)
     }
